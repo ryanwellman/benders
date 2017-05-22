@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Message Board{% endblock %}
+
+{% block content %}
+<a href="{% url 'new_message' %}" class="btn btn-success">Add New Message</a>
+<div>
+    <table class="table table-striped">
+	<thead>
+	    <th></th>
+	    <th>Message Topic</th>
+	    <th>Posted By</th>
+	    <th>Date</th>
+	    <th>Replies</th>
+	</thead>
+	<tbody>
+	{% for m in message_list %}
+	    <tr>
+		<td><i class="icon-pushpin"></i></td>
+		<td><a href="{% url 'message_thread' message_id=m.id %}">{{ m.topic }}</a></td>
+		<td>{{ m.who.first_name }} {{ m.who.last_name }}</td>
+		<td>{{ m.when|date }}</td>
+		<td>{{ m.replies }}</td>
+	    </tr>
+	{% endfor %}
+	</tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Hall of Fame{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .hof-season {
+	background-color: black;
+	color: white;
+	border-radius: 20px;
+	padding-top: 25px;
+    }
+    .hof-plaque {
+	background-color: #D4A017;
+	color: black;
+	font-size: 200%;
+    }
+    .hof-table td {
+	border-top: none;
+    }
+    .last-season {
+	float: none;
+	margin-left: auto;
+	margin-right: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+    {% for h in hof %}
+	{% if forloop.first %}
+	    <div class="hof-season last-season span5">
+		<div class="row">
+		    <div class="hof-plaque span5">
+		    	<p><center>Season {{ h.season }} - {{ h.year }}</center></p>
+		    </div>
+		</div>
+		<table class="table hof-table">
+		    {% for a in h.awards %}
+		   	<tr>
+		    	    <td>{{ a.award.award }}</td>
+		    	    <td>{{ a.player.first_name }} {{ a.player.last_name }}</td>
+			</tr>
+		    {% endfor %}
+		</table>
+	    </div>
+	{% endif %}
+    {% endfor %}
+    </div>
+    <div>&nbsp;</div>
+    <div class="row">
+	{% for h in hof %}
+	    {% if not forloop.first %}
+	        {% if forloop.counter|divisibleby:"2" %}
+		</div><div>&nbsp;</div><div class="row">
+	        {% endif %}
+		<div class="span1"></div>
+		<div class="hof-season span5">
+		    <div class="row">
+			<div class="hof-plaque span5">
+		    	    <p><center>Season {{ h.season }} - {{ h.year }}</center></p>
+			</div>
+		    </div>
+		<table class="table hof-table">
+		    {% for a in h.awards %}
+			<tr>
+			    <td>{{ a.award.award }}</td>
+			    <td>{{ a.player.first_name }} {{ a.player.last_name }}</td>
+			</tr>
+		    {% endfor %}
+		</table>
+		</div>
+		<div class="span1"></div>
+	    {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}
+

@@ -1,0 +1,9 @@
+Hello {{ first_name }},
+
+Welcome to Bender's Garage!  Your registration request has been reviewed and you are now welcome to Register for upcoming games and participate in events at the Garage.
+
+You also now have full member access to the site.  Please take a moment to update your user profile and to check out the message boards.
+
+If you have any questions, let us know and we'll see you on the felt.
+
+-BG Team.

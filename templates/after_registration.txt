@@ -1,0 +1,9 @@
+Hello {{ first_name }},
+
+Thank you for registering for Game {{ game_number }} on {{ when|date }}!  Your registration was received and you are now on the list of players that will be participating.
+
+As a reminder, please be at the Garage by no later than 6:45 pm on game day to receive your on time bonus chips!
+
+See you on the felt.
+
+Team BG

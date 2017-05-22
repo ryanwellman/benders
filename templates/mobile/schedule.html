@@ -1,0 +1,20 @@
+{% extends "mobile_base.html" %}
+
+{% block content %}
+<table>
+    <thead>
+	<th>Game</th>
+	<th>When</th>
+	<th>Winner</th>
+    </thead>
+    <tbody>
+	{% for s in schedule %}
+	    <tr>
+		<td>{{ s.game_number }}</td>
+		<td>{{ s.when|date }}</td>
+		<td>{{ s.winner.player.first_name }}</td>
+	    </tr>
+	{% endfor %}
+    </tbody>
+</table>
+{% endblock %}

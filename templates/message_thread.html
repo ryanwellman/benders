@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Message Board{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .message-pic {
+	height: 60px;
+	width: 60px;
+    }
+    .date-row {
+	background-color: #3D3C3A;
+	color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<h3>{{ parent_message.topic }}</h3>
+<div>
+    <table class="table table-bordered" width="100%">
+	<tr class="date-row">
+	    <td colspan="2">{{ parent_message.when|date }}</td>
+ 	</tr>
+	<tr>
+	    <td width="15%">
+		<strong>{{ parent_message.who.first_name }} {{ parent_message.who.last_name }}</strong></br>
+		<img class="img-rounded message-pic" src="{{ parent_player.photo.url }}" />
+	    </td>
+	    <td width="85%">{{ parent_message.message|safe }}</td>
+	</tr>
+	{% for r in replies %}
+	    <tr class="date-row">
+		<td colspan="2">{{ r.when|date }}</td>
+	    </tr>
+	    <tr>
+		<td width="15%">
+		    <strong>{{ r.first_name }} {{ r.last_name }}</strong></br>
+		    {% if r.player %}
+		    	<img class="img-rounded message-pic" src="{{ r.player.photo.url }}" />
+		    {% else %}
+			<img class="img-rounded message-pic" src="/static/images/broncos.jpg" />
+		    {% endif %}
+		</td>
+		<td width="85%">{{ r.message|safe }} </td>
+	    </tr>
+	{% endfor %}
+    </table>
+</div>
+<div hidden="hidden" id="reply_sec">
+<form class="form-horizontal" method="POST">
+{% csrf_token %}
+    <input type="hidden" name="who" value="{{user.id}}" />
+    <input type="hidden" name="parent" value="{{message_id}}" />
+    {% include 'bootstrap-field.html' with field=form.topic %}
+    {% include 'bootstrap-field.html' with field=form.message %}
+    <div class="form-actions">
+	<button type="submit" class="btn btn-primary">Submit Reply</button>
+	<a class="btn cancel-btn">Cancel</a>
+    </div>
+</form>
+</div>
+<div id="add_reply">
+    <a class="btn btn-info reply-btn"><i class="fa fa-reply"></i> Reply</a>
+</div>
+{% endblock %}
+
+{% block javascript_compress %}
+<script type="text/javascript">
+$(function() {
+    $('.reply-btn').on('click', function(evt) {
+	$('#reply_sec').slideToggle("slow");
+	$('#add_reply').slideToggle("slow");
+    });
+    $('.cancel-btn').on('click', function(evt) {
+	$('#add_reply').slideToggle("slow");
+	$('#reply_sec').slideToggle("slow");
+    });
+});
+</script>
+{% endblock %}

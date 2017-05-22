@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}New Message{% endblock %}
+
+{% block content %}
+<form class="form-horizontal" id="new_message_form" method="POST">
+{% csrf_token %}
+    <input type="hidden" name="who" value="{{user}}" />
+    <div class="row">
+	{% include 'bootstrap-field.html' with field=form.topic %}
+    </div>
+    <div class="row">
+	{% include 'bootstrap-field.html' with field=form.message %}
+    </div>
+    <div class="form-actions">
+	<button type="submit" class="btn btn-primary">Submit Message</button>
+	<a href="{% url 'message_board' %}" class="btn">Cancel</a>
+    </div>
+</form>
+{{errors}}
+{% endblock %}

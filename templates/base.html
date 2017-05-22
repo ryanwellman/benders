@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+{% load benders_tags %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Bender's Garage</title>
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'images/BendersHeader.png' %}" />
+    
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/3.2.1/css/font-awesome.min.css" media="all" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/bootstrap-switch.css' %}" rel="stylesheet">
+    <script type="text/javascript" src="{% static 'js/jquery-1.10.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/knockout-3.0.0.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-datepicker.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/highcharts.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/highcharts-more.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/highcharts-funnel.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-switch.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/knockout_boots.js' %}"></script>
+    <script>
+  	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  	ga('create', 'UA-52146944-1', 'bendersgarage.com');
+   	ga('send', 'pageview');
+    </script>
+    
+    <style type="text/css">
+        body {
+            padding-top: 28px;
+            /*background-color: #D1D0CE;*/
+	    background: url({% static 'images/benders_background.png' %});
+        }
+        .container > .content {
+            padding: 20px;
+            background-color: white;
+	    margin: 0 -20px;
+	    border-radius: 18px;
+        }
+        .footermenu {
+            margin-left: 0;
+        }
+	.input .login-field {
+	    background-color: #726E6D;
+	    color: black;
+	}
+	.site-logo {
+	    width: 35%;
+	}
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container">
+                <a class="brand" href="{% url 'home' %}"><img src="{% static 'images/bg_small_logo.jpg' %}" /></a>
+                <ul class="nav">
+		    <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown">Schedule/Results <b class="caret"></b></a>
+			<ul class="dropdown-menu">
+                    	    <li><a href="{% url 'leaderboard' %}">Leaderboard</a></li>
+		    	    <li><a href="{% url 'weekly_results' %}">Weekly Results</a></li>
+		    	    <li><a href="{% url 'schedule' %}">Schedule</a></li>
+			</ul>
+		    </li>
+		    <li class="dropdown">
+			<a href="#" class="dropdown-toggle" data-toggle="dropdown">League Info <b class="caret"></b></a>
+			<ul class="dropdown-menu">
+			    <li><a href="{% url 'rules' %}">League Rules</a></li>
+			    <li><a href="{% url 'toc' %}">TOC Page</a></li>
+			    <li><a href="{% url 'awards' %}">Awards</a></li>
+			    <li><a href="{% url 'hall_of_fame' %}">Hall of Fame</a></li>
+			</ul>
+		    </li>
+		    <li class="divider-vertical"></li>
+		    <li><a href="{% url 'player_list' %}">Players</a></li>
+		    <li class="divider-vertical"></li>
+		    <!--
+		    {% if user.is_authenticated %}
+		    	<li><a href="{% url 'message_board' %}">Message Board</a></li>
+		    	<li class="divider-vertical"></li>
+		    {% endif %}
+		    -->
+		</ul>
+		    {% if user.is_authenticated %}
+			<ul class="nav pull-right">
+			    <li class="dropdown">
+				<a href="#" data-toggle="dropdown" class="dropdown-toggle">
+				    Logged in as: <i class="icon icon-user icon-white"></i> {{user}}
+				    <b class="caret"></b>
+				</a>
+				<ul class="dropdown-menu">
+				    <li><a href="{% url 'user_profile' user.id %}">Manage Profile</a></li>
+				    <li><a href="{% url 'password_reset' %}">Change Password</a></li>
+				    {% if user.is_staff %}
+					<li><a href="{% url 'benders_admin' %}">Admin</a></li>
+				    {% endif %}
+				    <li><a href="{% url 'log_out' %}">Logout</a></li>
+				</ul>
+			    </li>
+			</ul>
+		    {% else %}
+			<form class="navbar-form pull-right" method="POST" action="{% url 'log_in' %}">
+			    {% csrf_token %}
+			    <input type="text" class="login-field input-small" name="username" placeholder="username" style="background-color: #726E6D; border: 0px; text-align: center; color: white">
+			    <input type="password" class="login-field input-small" name="password" placeholder="password" style="background-color: #726E6D; border: 0px; text-align: center; color: white">
+			    <button type="submit" class="btn">Log In</button>
+		  	</form>
+		    {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="content">
+            <div class="page-header">
+                <center><h1>{% block pagetitle %}{% endblock %}</h1></center>
+            </div>
+	    {% if messages %}
+		{% for message in messages %}
+		    <div class="alert fade in alert-{{ message.tags|message_tags }}">
+			<a href="#" class="close" data-dismiss="alert">&times;</a>
+			{% if 'safe' in message.tags %}
+			    {{ message|safe }}
+			{% else %}
+			    {{ message }}
+			{% endif %}
+		    </div>
+		{% endfor %}
+	    {% endif %}
+            <div class="row">
+	        <div class="span12">
+		    {% block content %}{% endblock %}
+	        </div>
+            </div>
+	    {% block footer %}
+            <div class="footer">
+                <div class="row footermenu">
+		    <div class="span12">
+			<center><p><img class="site-logo" src="{% static 'images/bgclean.png' %}" /></p></center>
+                        <center><p>&copy; Bender's Garage {% now "Y" %}</p></center>
+		    </div>
+                </div>
+            </div>
+	    {% endblock %}
+	</div>
+    </div>
+
+    {% block javascript_variables_nocompress %}{% endblock %}
+
+
+    <script type="text/javascript">
+    </script>
+
+    {% block javascript_compress %}{% endblock %}
+
+    {% block javascript_nocompress %}{% endblock %}
+
+
+</body>
+</html>
+

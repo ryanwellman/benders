@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Select Game{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+<form id="ResultsEntry" class="form-horizontal" method="POST">
+    {% csrf_token %}
+    <div class="control-group">
+        <label class="control-label" for="game_number">Game Number: </label>
+        <div class="controls">
+            <select class="input-medium" name="game_number">
+                <option></option>
+                {% for g in game_list %}
+                    <option value="{{g.game_number}}">{{g.game_number}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-info"><i class="icon icon-arrow-right icon-white"></i> Next</button>
+    </div>
+</form>
+{% endblock %}
+

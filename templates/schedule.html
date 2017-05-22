@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Schedule{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .schedule-table th {
+	text-align: center;
+    }
+    .schedule-table td {
+    	text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="span12">
+	<center><p>Season 14 is 15 games long</p></center>
+	<center><p>Games are on the following <u><b>Saturdays at 7:00pm Sharp.</b></u></p></center>
+        <center><p>Tournament of Champions is on the weekend of May 20, 2017</p></center>
+    </div>
+</div>
+<div class="row">
+    {% for s in schedule %}
+	{% if not s.game_number|divisibleby:2 %}
+	<div class="span6">
+	    <table class="table schedule-table table-striped table-bordered" width="100%">
+		<thead>
+		    <th width="30%">Game Number</th>
+		    <th width="30%">Date</th>
+		    <th width="60%">Winner</th>	
+		</thead>
+		<tbody>
+		    <tr>
+			<td>{{s.game_number}}</td>
+			<td>{{s.when|date}}</td>
+			{% if s.winner %}
+			    <td>{{ s.winner.player.first_name }} {{s.winner.player.last_name }}</td>
+			{% else %}
+			    <td></td>
+			{% endif %}
+		    </tr>
+		</tbody>
+	    </table>
+	</div>
+	{% else %}
+	<div class="span6">
+            <table class="table schedule-table table-striped table-bordered" width="100%">
+                <thead>
+                    <th width="30%">Game Number</th>
+                    <th width="30%">Date</th>
+                    <th width="40%">Winner</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{s.game_number}}</td>
+                        <td>{{s.when|date}}</td>
+			{% if s.winner %}
+			    <td>{{ s.winner.player.first_name }} {{ s.winner.player.last_name }}</td>
+			{% else %}
+			    <td></td>
+			{% endif %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+	{% endif %}
+    {% endfor %}
+</div>
+{% endblock %}
+

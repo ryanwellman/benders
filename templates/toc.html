@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block pagetitle %}TOC - Tournament of Champions{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .badge-bronze {
+	background-color: #CD7F32;
+    }
+    .badge-silver {
+	background-color: #C0C0C0;
+    }
+    .badge-gold {
+	background-color: #D4A017;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div>
+<p>There are now 3 individual tournaments that comprise the "Tournament of Champions" - a Gold, a Silver, and a Bronze tournament/"table".  Starting chip counts for each TOC tournament are proportional to the final amount of points the player earned throughout the season.</p>
+
+<p>The <span class="badge badge-bronze">Bronze Table</span> will play first, and will include those 9 players that finished #19-#27 in the final league standings (or as many *eligible players allowed to play).</p>
+    <ul>
+	<li>1% of the total prize pool (minus POY prizes) will go to the top <b>2</b> players at the Bronze Table.</li>
+	<li>15 minute blind levels.</li>
+	<li>The winner of the Bronze Table has an option:  they can take the Bronze 1st place cash OR use that same cash amount to buy into the Silver Table to become the 10th player at the Silver Table.</li>
+	<li>If the winner of the Bronze Table chooses to not play in the Silver Table, the option will be passed onto the 2nd place finisher of the Bronze Table (for the same buy-in price awarded to the Bronze winner).</li>
+	<li>If the 2nd place finisher of the Bronze Table declines, the option is passed to the 3rd place finisher, and so forth, all the way down to the last place finisher of the Bronze Table, if applicable.</li>
+    </ul>
+
+<p>The <span class="badge badge-silver">Silver Table</span> will play next, and will include those 9 players that finished #10-#18 in the final league standings plus any one person that plays-in from the Bronze Table.</p>
+    <ul>
+	<li>9% of the total prize pool (minus POY prizes) will go to the top <b>3</b> players at the Silver Table.</li>
+	<li>20 minute blind levels.</li>
+	<li>The winner of the Silver Table has an option:  they can take the Silver 1st place cash OR use that same cash amount to buy into the Gold Table to become the 10th player at the Gold Table.</li>
+	<li>If the winner of the Silver Table chooses to not play in the Gold Table, the option will be passed onto the 2nd place finisher of the Silver Table (for the same buy-in price awarded to the Silver winner).</li>
+	<li>If the 2nd place finisher of the Silver Table declines, the option is passed to the 3rd place finisher, and so forth, all the way down to the last place finisher of the Silver Table, if applicable.</li>
+	<li>Whomever (if anyone) decides to buy-in to the Silver Table from the Bronze Table, they will start with exactly 500 chips less than the last place Silver qualifier.</li>
+    </ul>
+
+<p>The <span class="badge badge-gold">Gold Table</span> will play last, and will include those 9 players that finished #1-#9 in the final league standings plus any one person that plays-in from the Silver Table.</p>
+    <ul>
+	<li>90% of the total prize pool (minus POY prizes) will go to <b>ALL</b> of the players at the Gold Table.</li>
+	<li>30 minute blind levels.</li>
+	<li>Whomerver (if anyone) decides to buy-in to the Gold Table from the Silver Table, they will start with exactly 1000 chips less than the last place Gold qualifier.</li>
+    </ul>
+</div>
+{% endblock %}
+

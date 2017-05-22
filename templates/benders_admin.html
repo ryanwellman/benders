@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Admin{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    a {
+	color: #000000;
+    }
+</style>
+{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="well span3">
+	<ul class="nav nav-list">
+	    <li class="nav-header">Bender's Admin</li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'select_game' %}"><i class="icon-star"></i> Enter Results</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'add_news' %}"><i class="icon-pencil"></i> Add League News</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'assign_awards' %}"><i class="icon-trophy"></i> Assign Awards</a></li>
+	    <li class="divider"></li>
+	    <li><a href="#"><i class="icon-money"></i> League Accounting</a></li>
+	    <li class="divider"></li>
+	    <li><a href="#"><i class="icon-envelope-alt"></i> Email League</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'create_schedule' %}"><i class="icon-calendar-empty"></i> Create Schedule</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'select_schedule' %}"><i class="icon-edit"></i> Edit Schedule</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'review_registration' %}"><i class="icon-user"></i> Review Users</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'member_roster' %}"><i class="icon-group"></i> Member Roster</a></li>
+	    <li class="divider"></li>
+	    <li><a href="{% url 'register_player'%}"><i class="icon-asterisk"></i> Register Player</a></li>
+	</ul>
+    </div>
+</div>
+{% endblock %}
+

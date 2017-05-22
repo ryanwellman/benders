@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block pagetitle %}Review Registrations {% endblock %}
+
+{% block content %}
+    {% for u in unactives %}
+	<h4>Player Name: {{ u.first_name }} {{ u.last_name }}</h4>
+	<table class="table table-condensed" width="100%">
+	    <tr>
+		<td width="15%"><strong>Join Date</strong></td>
+		<td width="25%">{{ u.date_joined|date }}</td>
+		<td width="15%"><strong>Referred By</strong></td>
+		{% for r in referrals %}
+		    {% if u.id == r.user_id %}
+			<td width="45%">{{ r.referred_by }}</td>
+		    {% endif %}
+		{% endfor %}
+	    </tr>
+	    <tr>
+		<td width="15%"><strong>Email</strong></td>
+		<td width="25%">{{ u.email}}</td>
+		<td width="15%"><strong>Action</strong></td>
+		<td width="45%">
+		    <form method="POST" action="{% url 'approve_registration' player_id=u.id %}">
+		    {% csrf_token %}
+		    	<button class="btn btn-mini btn-success">Activate Player</button>
+		    </form>
+		    <form method="POST" action="{% url 'deny_registration' player_id=u.id %}">
+		    {% csrf_token %}
+			<button class="btn btn-mini btn-danger">Deny Player</button>
+		    </form>
+		    <form method="POST" action="{% url 'deactivate_player' player_id=u.id %}">
+		    {% csrf_token %}
+			<button class="btn btn-mini btn-warning">Deactivate Player</button>
+		    </form>
+		</td>
+	    </tr>
+	</table>	
+    {% endfor %}
+    </table>
+{% endblock %}

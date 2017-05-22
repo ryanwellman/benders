@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block pagetitle %}Add League News{% endblock %}
+
+{% block content %}
+{% include 'form_errors.html' %}
+<form class="form-horizontal" method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+    <input type="hidden" name="season" value="{{current_season}}">
+
+    {% include 'bootstrap-field.html' with field=form.title %}
+    {% include 'bootstrap-field.html' with field=form.news %}
+    {% include 'bootstrap-field.html' with field=form.photo %}
+
+    <div class="control-group">
+	<div class="controls">
+	    <label class="checkbox">
+		<input type="checkbox" name="add_to_messageboard"> Add News to Message Board
+	    </label>
+	</div>
+    </div>
+    <div class="form-actions">
+	<button type="submit" class="btn btn-primary">Add News</button>
+    </div>
+</form>
+{{errros}}
+{% endblock %}

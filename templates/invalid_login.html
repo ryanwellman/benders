@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Log In{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+{% include 'form_errors.html' %}
+<form class="form-horizontal" method="POST">
+    {% csrf_token %}
+    {% include 'bootstrap-field.html' with field=form.username %}
+    {% include 'bootstrap-field.html' with field=form.password %}
+
+    <div class="controls">
+	Forget your password?  Click <a href="{% url 'password_reset' %}">here</a>.
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Log In</button>
+    </div>
+</form>
+{% endblock %}
+
+~
+

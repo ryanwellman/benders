@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Player Profile - {{player.first_name}} {{player.last_name}}{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .player-pic {
+	max-width: 50%;
+    }
+    .player-well {
+	background-color: #666362;
+	color: white;
+	font-size: 24px;
+    }
+    .header-row {
+	background-color: black;
+	color: white;
+	font-size: 24px;
+    }
+    .badge-bronze {
+	background-color: #CD7F32;
+	padding: 10px 20px;
+	font-size: 18px;
+    }
+    .badge-silver {
+	background-color: #C0C0C0;
+	padding: 10px 20px;
+	font-size: 18px;
+    }
+    .badge-gold {
+	background-color: #D4A017;
+	padding: 10px 20px;
+	font-size: 18px;
+    }
+    .label-header {
+	background-color: black;
+	color: white;
+	padding: 16px 20px;
+	font-size: 22px;
+    }
+    .trophy-case {
+	font-size: 16px;
+	font-weight: bold;
+	text-align: center;
+    }
+    .header-div {
+	background-color: black;
+	color: white;
+	font-size: 24px;
+	border-radius: 8px;
+	text-align: center;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% if profile %}
+    	{% if profile.photo %}
+    	<div class="span4">
+	    <center><img class="img-polaroid player-pic" src="{{ profile.photo.url }}"></center>
+    	</div>
+	{% else %}
+	<div class="span4">
+	    <center><img class="img-polaroid player-pic" src="/static/images/elwaysuperbowl.jpg" /></center>
+	</div>
+	{% endif %}
+    <div class="span7">
+	<table class="table table-condensed" width="100%">
+	    <tr>
+		<td width="40%"><strong>Nickname:</strong></td>
+		<td width="60%">{{ profile.nickname|default_if_none:'' }}</td>
+	    </tr>
+	    <tr>
+		<td><strong>Playing Poker Since:</strong></td>
+		<td>{{ profile.playing_since|default_if_none:'' }}</td>
+	    </tr>
+	    <tr>
+		<td><strong>BG Seasons:</strong></td>
+		<td>{{ profile.tour_seasons|default_if_none:'' }}</td>
+	    </tr>
+	    <tr>
+		<td><strong>Favorite Hand:</strong></td>
+		<td>{{ profile.favorite_hand|default_if_none:'' }}</td>
+	    </tr>
+	    <tr>
+		<td><strong>Favorite Activity Outside of Poker:</td>
+		<td>{{ profile.outside_activity }}</td>
+	    </tr>
+	    <tr>
+		<td><strong>Favorite Poker Playing Memory:</strong></td>
+		<td>{{ profile.best_memory|safe }}</td>
+	    </tr>
+	</table>
+    </div>
+    {% else %}
+    <div class="span4">
+	<center><img class="img-polaroid player-pic" src="/static/images/elwaysuperbowl.jpg" /></center>
+    </div>
+    <div class="span7">
+    <form id="update_profile" method="POST">
+	{% csrf_token %}
+	<p><h4>{{ player.first_name }} has not filled out his/her profile yet.</h4></p>
+     	<p><h4>If you'd like to notify {{ player.first_name }} that this profile is still empty, click <a href="{% url 'notify_player' player_id=player.id %}">here</a>.</h4></p>
+    </form>
+    </div>
+    {% endif %}
+</div>
+<div>&nbsp;</div>
+<div class="row">
+    {% if player.first_name|slice:"-1:" == "s" %}
+            <div class="span7 header-div">{{ player.first_name }}' Trophy Case</div>
+	    <div class="span5 header-div">{{ player.first_name }}' Season Stats</div>
+    {% else %}
+            <div class="span7 header-div">{{ player.first_name }}'s Trophy Case</div>
+	    <div class="span5 header-div">{{ player.first_name}}'s Season Stats</div>
+    {% endif %}
+</div>
+<div class="row">
+    <div class="span7">
+	<div>&nbsp;</div>
+	<div class="row">
+ 	{% if trophy_case|length > 0 %}
+	    {% for t in trophy_case %}
+		{% if forloop.counter0|divisibleby:"2" %}
+		    </div><div class="row">	
+		{% endif %}
+		<div>
+		    <div class="span1">
+		    	<img class="img-rounded" src="/static/images/trophy.jpg" class="pull-right" />
+		    </div>
+		    <div class="span2">
+			<p class="trophy-case">{{ t.award.award }}</br>
+			Season {{ t.season }}</p>
+		    </div>
+		</div>
+	    {% endfor %}
+	{% endif %}	
+	</div>
+	{% if not trophy_case %}
+	<div>
+	    <center>
+	    	<p>{{ player.first_name }} has no trophies.  But, we're sure {{ player.first_name }} tried hard.</p>
+	    	<p> So, we'll give {{ player.first_name }} a participation medal!</p>
+	    </center>
+            <center><p><img class="img-rounded" src="/static/images/you_tried.jpg" /></p></center>
+	</div>
+	{% endif %}
+    </div>
+    <div class="span5">
+	<div>&nbsp;</div>
+        <table class="table">
+            <tr>
+                <td><strong>Tournaments Played</strong></td>
+                <td>{{ buy_ins }}</td>
+		<td>(out of {{ league_games_played }})</td>
+            </tr>
+            <tr>
+                <td><strong>Final Tables</strong></td>
+                <td>{{ final_tables }}</td>
+		{% if no_games_played %}
+		    <td>(N/A)</td>
+		{% else %}
+		    <td>({{ final_table_pct|floatformat:2 }}%)</td>
+		{% endif %}
+            </tr>
+            <tr>
+                <td><strong>Cashes</strong></td>
+                <td>{{ cashes }}</td>
+		{% if no_games_played %}
+		    <td>(N/A)</td>
+		{% else %}
+		    <td>({{ cash_pct|floatformat:2 }}%)</td>
+		{% endif %}
+            </tr>
+            <tr>
+                <td><strong>Tournament Wins</strong></td>
+                <td>{{ wins }}</td>
+		{% if no_games_played %}
+		    <td>(N/A)</td>
+		{% else %}
+		    <td>({{ win_pct|floatformat:2 }}%)</td>
+		{% endif %}
+            </tr>
+            <tr>
+                <td><strong>Tournament Points</strong></td>
+                <td>{{ current_points }}</td>
+		{% if current_points > 0 %}
+		    <td>({{ place }}{{ place_suffix}} place)</td>
+		{% else %}
+		    <td>(N/A)</td>
+		{% endif %}
+            </tr>
+            <tr>
+                <td><strong>Bounty Points</strong></td>
+                <td>{{ bounty_points }}</td>
+		{% if bounty_points == 0 %}
+		    <td>(N/A)</td>
+		{% else %}
+		    <td>({{ bounty_place }}{{ bounty_place_suffix }} place)</td>
+		{% endif %}
+            </tr>
+        </table>
+        <div>&nbsp;</div>
+        <div class="well">
+            <center><h4>Current TOC Status:
+	    {% if not season_started and not no_games_played %}
+		Season has not started yet.</h4>
+		<h5>Please check back after game 1.</h5>
+	    {% elif no_games_played %}
+		<h5>No games played yet this season.</h5>
+            {% elif place <= 9 %}
+                <span class="badge badge-gold">Gold Table</span>
+            {% elif place <= 18 %}
+                <span class="badge badge-silver">Silver Table</span></h4>
+                <h5>Points away from <font color="#D4A017">Gold</font> Table: {{ points_away }}</h5>
+            {% elif place <= 27 %}
+                <span class="badge badge-bronze">Bronze Table</span></h4>
+                <h5>Points away from <font color="#C0C0C0">Silver</font> Table: {{ points_away }}</h5>
+            {% else %}
+                Outside Looking In</h4>
+                <h5>Points away from <font color="#CD7F32">Bronze</font> Table: {{ points_away }}</h5>
+            {% endif %}</center>
+            <center>
+        </div>
+    </div> 
+</div>
+<div class="row">
+    {% if season_started %}
+    <div class="span12">
+	<div id="container"></div>
+    </div>
+    <!--
+    <div class="span4">
+	<div id="pie_chart"></div>
+    </div>
+    -->
+    {% elif no_games_played %}
+    	<div>&nbsp;</div>
+	<h4><center>{{ player.first_name }} has not played any games yet this season, but, we'll put some stats up when he/she does.</center></h4>
+    {% else %}
+	<div>&nbsp;</div>
+	<center><h4>Please check back after Game 1 for more stats</h4></center>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block javascript_variables_nocompress %}
+<script type="text/javascript">
+    window.WEEKLY_RESULTS = {{ weekly_results|safe }};
+    window.STATS = {{ json_stats|safe }};
+</script>
+{% endblock %}
+
+{% block javascript_compress %}
+<script type="text/javascript">
+$(function () {
+    var games = [];
+    var weekly_points = [];
+    var cumulative_points = [];
+    _.each(window.WEEKLY_RESULTS, function(week) {
+	games.push(week.game);
+	weekly_points.push(parseInt(week.points));
+    });
+    var points = 0;
+    _.each(weekly_points, function(week) {
+	points += parseInt(week)
+	cumulative_points.push(points);
+    });
+    console.log("points", cumulative_points);
+    $('#container').highcharts({
+        chart: {
+            zoomType: 'xy'
+        },
+        title: {
+            text: 'Weekly Results'
+        },
+	/*
+        subtitle: {
+            text: 'Source: WorldClimate.com'
+        },
+	*/
+        xAxis: [{
+            categories: games,
+	    title: {
+		text: 'Game Number',
+	    }
+        }],
+        yAxis: [{ // Primary yAxis
+	    
+            labels: {
+                format: '{value}',
+                style: {
+                    //color: Highcharts.getOptions().colors[1]
+		    color: '#000000'
+                }
+            },
+            title: {
+                text: 'Season Points',
+                style: {
+                    //color: Highcharts.getOptions().colors[1]
+		    color: '#000000'
+                }
+            }
+        }, { // Secondary yAxis
+            title: {
+                text: 'Weekly Points',
+                style: {
+                    //color: Highcharts.getOptions().colors[0]
+		    color: '#347C17'
+                }
+            },
+            labels: {
+                format: '{value}',
+                style: {
+                    //color: Highcharts.getOptions().colors[0]
+		    color: '#347C17'
+                }
+            },
+            opposite: true
+        }],
+        tooltip: {
+            shared: true
+        },
+        legend: {
+            layout: 'vertical',
+            align: 'left',
+            x: 120,
+            verticalAlign: 'top',
+            y: 100,
+            floating: true,
+            backgroundColor: (Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF'
+        },
+        series: [{
+            name: 'Weekly Points',
+            type: 'column',
+            yAxis: 1,
+            data: weekly_points,
+            tooltip: {
+                valueSuffix: ''
+            },
+	    color: '#347C17'
+        }, {
+            name: 'Season Points',
+            type: 'spline',
+            data: cumulative_points,
+            tooltip: {
+                valueSuffix: ''
+            },
+	    color: '#000000'
+        }]
+    });
+    var wins = window.STATS.wins;
+    var cashes = window.STATS.cash_no_win;
+    var ft_no_cash = window.STATS.ft_no_cash;
+    var buy_ins = window.STATS.buy_ins;
+    var other = window.STATS.other;
+    var win_pct = wins/buy_ins.toFixed(2);
+    var ft_nc_pct = ft_no_cash/buy_ins.toFixed(2);
+    var cash_pct = cashes/buy_ins.toFixed(2);
+    var other_pct = other/buy_ins.toFixed(2);
+    $('#pie_chart').highcharts({
+    chart: {
+        type: 'pie',
+        options3d: {
+            enabled: true,
+            alpha: 45,
+            beta: 0
+        }
+    },
+    title: {
+        text: 'Tournament Breakdown'
+    },
+    tooltip: {
+        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    },
+    plotOptions: {
+        pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            depth: 35,
+            dataLabels: {
+                enabled: true,
+                format: '{point.name}: {point.percentage:.1f}%'
+            }
+        }
+    },
+    series: [{
+        type: 'pie',
+        name: '',
+        data: [
+            ['Wins', win_pct,],
+	    ['Cashes', cash_pct],
+	    ['Final Tables', ft_nc_pct],
+	    ['Other', other_pct]
+        ]
+    }]
+    });
+});
+</script>
+{% endblock %}

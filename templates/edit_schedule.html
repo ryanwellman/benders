@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<center><h2>Edit Schedule - Game {{ game_number }}</h2></center>
+{% include 'form_errors.html' %}
+<form class="form-horizontal" method="POST">
+{% csrf_token %}
+
+    {% include 'bootstrap-field.html' with field=form.when %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Edit Schedule</button>
+        <a href="{% url 'benders_admin' %}" class="btn">Cancel</a>
+    </div>
+
+    <div class="hidden">
+	{{ form.season }}
+	{{ form.game_number }}
+    </div>
+</form>
+{{errors}}
+{% endblock %}
+~
+{% block javascript_compress %}
+<script type="text/javascript">
+    $(function() {
+        $('.bootstrap-datepicker').datepicker({
+            autoclose: true,
+            format: "yyyy-mm-dd"
+        });
+    });
+</script>
+{% endblock %}
+

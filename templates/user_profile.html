@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block pagetitle %}User Profile - {{first_name}} {{last_name}}{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+{% block content %}
+<form class="form-horizontal" method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+    <input type="hidden" name="user_id" value="{{user_id}}" />
+
+    {% include 'bootstrap-field.html' with field=form.nickname %}
+    {% include 'bootstrap-field.html' with field=form.playing_since %}
+    {% include 'bootstrap-field.html' with field=form.tour_seasons %}
+    {% include 'bootstrap-field.html' with field=form.favorite_hand %}
+    {% include 'bootstrap-field.html' with field=form.best_memory %}
+    {% include 'bootstrap-field.html' with field=form.outside_activity %}
+    {% include 'bootstrap-field.html' with field=form.photo %}
+
+    <div class="form-actions">
+	<button type="submit" class="btn btn-primary">Update Profile</button>
+    </div>
+</form>
+{{errors}}
+{% endblock %}
+
+

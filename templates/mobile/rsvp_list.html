@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'less/benders.css' %}" />
+    <link rel="stylesheet" href="{% static 'less/jquery.mobile.icons.min.css' %}" />
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile.structure-1.4.2.min.css" />
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+</head>
+
+<body>
+<div data-role="page">
+    <div data-role="header" style="min-height: 45px;">
+	<center>Game: {{ game_number }}</center>
+	<center>Who's Playing?</center>	
+    </div><!-- /header -->
+    <div data-role="content">
+	{% for p in player_list %}
+	    <p><i class="fa fa-user"></i> {{ p }}</p>
+	{% endfor %}
+    </div><!-- /content -->
+</div><!-- /page -->
+
+</body>
+</html>

@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Leaderboard{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .header-row th {
+	background-color: black;
+	color: white;
+    }
+    .gold-row {
+	background-color: #FDD017;
+	text-align: center;
+    }
+    .silver-row {
+	background-color: #E5E4E2;
+    }
+    .bronze-row {
+	background-color: #CD7F32;
+    }
+    .up-cell {
+    	color: green;
+    }
+    .down-cell {
+    	color: red;
+    }
+    .center-div {
+    	float: none;
+    	margin-left: auto;
+    	margin-right: auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    {% if not has_results %}
+	<h4><center>No games have been played yet this season</center></h4>
+	<p><center>Please check back after {{ first_game.when|date}} when Game #1 has been played.</center></p>
+	</br></br>
+    {% else %}
+	<div class="row">
+	    <div class="span6">
+		<center><h3>Current</h3></center>
+	    	<table class="table table-condensed" width="100%">
+		    <thead class="header-row">
+		    	<th width="15%"><center>Place</center></th>
+			<th width="10%" data-bind="visible: show_change"></th>
+		    	<th width="40%">Player</th>
+			<th width="15%"><center>Played</center></th>
+		    	<th width="20%"><center>Points</center></th>
+		    </thead>
+		    <tbody data-bind="foreach: this_week">
+		     	<tr>
+			    <!-- ko if: place() <= 9 -->
+			    	<td class="gold-row"><center><span data-bind="text: place"></span></center></td>
+			    <!-- /ko -->
+			    <!-- ko if: place() > 9 && place() <= 18 -->
+				<td class="silver-row"><center><span data-bind="text: place"></span></center></td>
+			    <!-- /ko -->
+			    <!-- ko if: place() > 18 &&  place() <= 27 -->
+				<td class="bronze-row"><center><span data-bind="text: place"></span></center></td>
+			    <!-- /ko -->
+			    <!-- ko if: place() > 27 -->
+				<td><center><span data-bind="text: place"></span></center></td>
+			    <!-- /ko -->
+			    <!-- ko if: change() > 0 -->
+                                <td data-bind="visible: $root.show_change"><center><i class="icon-caret-up icon-large" style="color:green"></i> <small><span class="up-cell" data-bind="text: change"></span></small></center></td>
+                            <!-- /ko -->
+                            <!-- ko if: change() < 0 -->
+                                <td data-bind="visible: $root.show_change"><center><i class="icon-caret-down icon-large" style="color:red"></i> <small><span class="down-cell" data-bind="text: change() * -1"></span></small></center></td>
+                            <!-- /ko -->
+                            <!-- ko if: change() === 0 -->
+                                <td data-bind="visible: $root.show_change"><center><i class="icon-caret-right icon-large"></i></center></td>
+                            <!-- /ko -->
+			    <td><span data-bind="text: first_name"></span> <span data-bind="text: last_name"></span></td>
+			    <td><center><span data-bind="text: num_games"></span></center></td>
+			    <td><center><span data-bind="text: total_points"></span></center></td>
+		        </tr>
+		    </tbody>
+	    	</table>
+		</div>
+	    <div class="span6" data-bind="visible: show_change">
+		<center><h3>Last Week</h3></center>
+		<table class="table table-condensed" width="100%">
+		    <thead class="header-row">
+			<th width="15%"><center>Place</center></th>
+			<th width="10%"></th>
+			<th width="50%">Player</th>
+			<th width="25%"><center>Points</center></th>
+		    </thead>
+		    <tbody data-bind="foreach: last_week">
+			<tr>
+			    <!-- ko if: place <= 9 -->
+                        	<td class="gold-row"><center><span data-bind="text: place"></span></center></td>
+                    	    <!-- /ko -->
+                    	    <!-- ko if: place > 9 && place <= 18 -->
+                        	<td class="silver-row"><center><span data-bind="text: place"></span></center></td>
+                    	    <!-- /ko -->
+                    	    <!-- ko if: place > 18 &&  place <= 27 -->
+                        	<td class="bronze-row"><center><span data-bind="text: place"></span></center></td>
+                    	    <!-- /ko -->
+                    	    <!-- ko if: place > 27 -->
+                        	<td><center><span data-bind="text: place"></span></center></td>
+                     	    <!-- /ko -->
+			    <td></td>
+                    	    <td><span data-bind="text: first_name"></span> <span data-bind="text: last_name"></span></td>
+                    	    <td><center><span data-bind="text: total_points"></span></center></td>
+			</tr>
+		    </tbody>
+		</table>
+	    </div>
+	    <div class="span6" data-bind="visible: !$root.show_change()">
+		<h3><center>Last Week</center></h3>
+		<h4><center>There was no game last week!  The current leaderboard is based on the first game of the season.  Check back after the next game to see changes in the leaderboard!</center></h4>
+	    </div>
+	</div>
+    {% endif %}
+{% endblock %}
+
+{% block javascript_variables_nocompress %}
+<script type="text/javascript">
+    window.RESULT_SET = {{ season_results|safe }};
+    window.PLAYERS = {{ players|safe }};
+    window.LAST_GAME = {{ last_game|safe }};
+</script>
+{% endblock %}
+
+{% block javascript_compress %}
+<script type="text/javascript">
+    $(function() {
+	var leaders = []
+	_.each(window.PLAYERS, function(player) {
+	    var p_id = player;
+	    leaders.push(_.where(window.RESULT_SET, {player_id: p_id}));
+	});
+
+	console.log("leaders", leaders);
+	var ThisWeekModel = function (player) {
+	    console.log("player", player);
+	    var self = this;
+	    self.first_name = ko.observable(player[0].first_name);
+	    self.last_name = ko.observable(player[0].last_name);
+	    self.player_id = ko.observable(player[0].player_id);
+	    self.place = ko.observable();
+	    self.last_week = ko.observable();
+	    self.bounty_points = ko.computed(function() {
+		var points = 0;
+		_.each(player, function(pts) {
+		    points += parseInt(pts.bounty_points);
+		});
+		return points;
+	    });
+	    self.total_points = ko.computed(function() {
+		var points = 0;
+		_.each(player, function(pts) {
+		    points += parseInt(pts.total_points);
+		});
+		return points;
+	    });
+	    self.change = ko.computed(function() {
+		return parseInt(self.last_week()) - parseInt(self.place());
+	    });
+	    self.num_games = ko.observable(player.length);
+	};
+
+	var LastWeekModel = function(player) {
+	    var self = this;
+	    var last_game = window.LAST_GAME;
+	    self.first_name = ko.observable(player[0].first_name);
+	    self.last_name = ko.observable(player[0].last_name);
+	    self.player_id = ko.observable(player[0].player_id);
+	    self.bounty_points = ko.computed(function() {
+		var points = 0;
+		_.each(player, function(pts) {
+		    if (pts.game_number === last_game) {
+			return;
+		    } else {
+			points += parseInt(pts.bounty_points)
+		    }
+		});
+		return points;
+	    });
+	    self.total_points = ko.computed(function() {
+		var points = 0;
+		_.each(player, function(pts) {
+		    if (pts.game_number === last_game) {
+			return;
+		    } else {
+			points += parseInt(pts.total_points)
+		    }
+		});
+		return points;
+	    });
+	};
+
+	var LeaderboardModel = function () {
+	    var self = this;
+	    self.this_week = ko.observableArray();
+            self.last_week = ko.observableArray();
+	    self.show_change = ko.observable(true);
+	    if (window.LAST_GAME == 1) {
+		self.show_change(false);
+	    };
+
+	    _.each(leaders, function(player) {
+		self.this_week.push(new ThisWeekModel(player));
+		self.last_week.push(new LastWeekModel(player));
+	    });
+
+	    self.this_week.sort(function(a, b) {
+		return a.total_points() > b.total_points() ? 1 : -1
+	    }).reverse();
+	    self.last_week.sort(function(a, b) {
+		return a.total_points() > b.total_points() ? 1 : -1
+	    }).reverse();
+
+	    var place = 1;
+	    _.each(self.this_week(), function(player) {
+		player.place(place);
+		place = place + 1;
+	    });
+	    place = 1;
+	    _.each(self.last_week(), function(player) {
+		player['place'] = place;
+		place = place + 1;
+	    });
+	    _.each(self.this_week(), function(result) {
+		var player = result.player_id();
+		var last_score;
+		_.each(self.last_week(), function(last) {
+		    if (last.player_id() === player) {
+			last_score = last.place;
+		    }
+		    return;
+		});
+		result.last_week(last_score);
+	    });
+	};
+
+	ko.applyBindings(new LeaderboardModel());
+    });
+</script>
+{% endblock %}

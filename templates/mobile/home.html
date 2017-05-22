@@ -1,0 +1,46 @@
+{% extends "mobile_base.html" %}
+
+{% block content %}
+<div class="ui-grid-a">
+{% for n in news_rows %}
+    {% if forloop.first %}
+	<h2><center>Recent News</center></h2>
+	<div class="ui-block-a">
+	<p><img class="img-polaroid" src="{{ n.photo.url }}" style="width:95%"></p>
+	</div
+	<div class="ui-block-b">
+	<p><h4><center><u>{{ n.title }}</u></center></h4></p>
+	<p>{{ n.news }}</p>
+	</div>
+    {% endif %}
+{% endfor %}
+</div>
+<form id="mobile_home" method="POST">
+{% csrf_token %}
+    <div data-role="collapsibleset">
+        <div data-role="collapsible" data-theme="e">
+	    <h3><i class="fa fa-file-text-o"></i> Recent News</h3>
+    	        {% for n in news_rows %}
+		    {% if forloop.first %}
+	    	        <p><img class="img-polaroid" src="{{ n.photo.url }}"></p>
+	    	        <p>{{ n.news }}</p>
+		    {% endif %}
+    	    	{% endfor %}
+    	</div>
+    	<div data-role="collapsible" data-theme="d">
+	    <h3><i class="fa fa-calendar-o"></i> Next Game</h3>
+	    <center><h4>{{ next_game_date }}</h4></center>
+	    <p>RSVP Counter:<label>{{ rsvp_counter }}</label></p>
+	    <p><a href="{% url 'rsvp_list' %}" class="btn" data-rel="dialog" data-transition="flip"><i class="fa fa-eye"></i> See who's playing <i class="fa fa-eye"></i></a></p>
+        </div>
+        <div data-role="collapsible" data-theme="e">
+	    <h3><i class="fa fa-thumbs-up"></i> RSVP</h3>
+	    {% include 'bootstrap-field.html' with field=form.username %}
+	    {% include 'bootstrap-field.html' with field=form.password %}
+	    <p><center>By clicking the "Submit RSVP" button, I am indicating that I will be there for sure</center></p>
+	    <center><button type="submit" class="btn btn-success">Submit RSVP</button></center>
+        </div>
+    </div>
+</form>
+{% endblock %}
+

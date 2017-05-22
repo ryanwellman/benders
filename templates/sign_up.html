@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Join Bender's Garage{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .attention-well {
+	box-sizing: border-box;
+	background-color: #FFE87C;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'form_errors.html' %}
+<form class="form-horizontal" method="POST">
+    {% csrf_token %}
+    <div class="row">
+	<div class="well attention-well span12">
+	    <h3>Attention New Players</h3>
+	    <p>In order to keep our games at Bender's Garage secure and fun for everyone, we review every new player that signs up to join the league.  Until we have verified your information, you will not be approved to register for any games, receive information about the league, or have full access to this site.  Thank you for understanding and interest in the league and we hope to see you joining us at the tables soon!</p>
+	    <p>- BG Staff</p>
+	</div>
+    </div>
+    {% include 'bootstrap-field.html' with field=form.first_name %}
+    {% include 'bootstrap-field.html' with field=form.last_name %}
+    {% include 'bootstrap-field.html' with field=form.email %}
+    {% include 'bootstrap-field.html' with field=form.username %}
+    {% include 'bootstrap-field.html' with field=form.password1 %}
+    {% include 'bootstrap-field.html' with field=form.password2 %}
+    {% include 'bootstrap-field.html' with field=form.referred_by %}    
+ 
+    <div class="form-actions">
+	<button type="submit" class="btn btn-success">Sign Up</button>
+	<a href="{% url 'home' %}" class="btn">Cancel</a>
+    </div>
+    {% for e in errors %}
+	<p>{{e}}</p>
+    {% endfor %}
+</form>
+{% endblock %}
+

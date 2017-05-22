@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Bender's Garage Poker League{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .rsvp {
+	background-color: #FFFF00;
+    }
+    .news_link {
+	color: black;
+    }
+    .title {
+	background-color: #666362;
+	color: white;
+	font-size: 24px;
+    }
+    .counter_well {
+	background-color: #DCDCDC;
+	padding-top: 5px;
+    }	
+    .counter {
+	padding: 8px;
+	font-size: 20px;
+	background-color: #F89406;
+    }
+    .header-div {
+	background-color: #3D3C3A;
+	color: white;
+	font-size: 24px;
+	border-radius: 8px;
+	text-align: center;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	vertical-align: middle;
+    }
+    .rsvp-well {
+	padding: 0px;
+    }
+    .site-logo {
+	width: 50%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="span8 header-div">League News</div>
+    <div class="span4 header-div">Next Game: 
+	{% if next_game_id %}
+	    {{ next_game_date }}
+	{% endif %}
+    </div>
+</div>
+<div>&nbsp;</div>
+<div class="row">
+	<div id="right-side" class="span4 pull-right">
+	    <div class="row">
+		<div class="well rsvp-well span4">
+			{% if user.is_authenticated %}
+				{% if registered %}
+				    <div class="row">
+					<div class="span4">
+					    <center>
+						<h3>Good Luck!</h3>
+						<p>You have successfully reserved your seat<br> at the next game!  Remember,<br> be at the garage by 5:45pm to get your on<br> time bonus chips.</p></br>
+						<p>Can't make it after all?  OH NO!<br> That's too bad. But, do us a favor and<br> click the button below to take your name<br> off the list.</p></br>
+					    </center>
+						<form id="unRSVP" method="POST" action="{% url 'un_rsvp' %}">
+						{% csrf_token %}
+							<center><button class="btn btn-danger"><i class="icon-warning-sign"></i> UN-Register <i class="icon-warning-sign"></i></button</center>
+						</form>
+						</br>
+					</div>
+				    </div>
+				{% else %}
+					<form class="form-inline" id="loggedIn" method="POST" action="{% url 'quick_rsvp' %}">
+					{% csrf_token %}
+						<div class="row">
+							<div class="span4">					
+								<center>
+									<h3>Register for Upcoming Game</h3>
+									<p>Currently Logged in as: {{user.username}}</br>
+									<em><a href="{% url 'log_out' %}">Log Out</a></em></p>
+								</center>
+							</div>
+						</div>
+						<div class="row">
+							<div class="span4">
+								<center>
+									<label class="checkbox inline">
+										{{ form.confirm_rsvp }} My registration means I WILL BE THERE.
+									</label>
+									{% if "confirm_rsvp" in errors %}
+										<span class="help-block"><em style="color: red">You must confirm that you'll be there to register.</em></span>
+									{% endif %}
+								</center>
+							</div>
+						</div>
+						<div>&nbsp;</div>
+						<div class="row">
+							<div class="span4">
+								<center><button type="submit" class="btn btn-success">Submit Registration</button></center>
+							</div>
+						</div>	
+					</form>
+				{% endif %}
+			{% else %}
+				<form class="form-inline" id="notLoggedIn" method="POST">
+				{% csrf_token %}
+					<div class="row">
+						<div class="span4">
+							<h3><center>Register for Upcoming Game</center></h3>
+						</div>
+					</div>
+					<div class="row">
+						<div class="span4">
+							<center>
+								{{form.username}}
+								{% if "username" in errors %}
+									<span class="help-block"><em style="color: red">Username is required to Register.</em></span>
+								{% endif %}
+							</center>
+						</div>
+					</div>
+					<div>&nbsp;</div>
+					<div class="row">
+						<div class="span4">
+							<center>
+								{{form.password}}
+								{% if "password" in errors %}
+									<span class="help-block"><em style="color: red">Password is required to Register.</em></span>
+								{% endif %}
+							</center>
+						</div>
+					</div>
+					<div>&nbsp;</div>
+					<div class="row">
+						<div class="span4">
+							<center>
+								<label class="checkbox inline">
+									{{ form.confirm_rsvp }} My registration means I WILL BE THERE.
+								</label>
+								{% if "confirm_rsvp" in errors %}
+									<span class="help-block"><em style="color: red">You must confirm that you'll be there to Register.</em></span>
+								{% endif %}
+							</center>
+						</div>
+					</div>
+					<div>&nbsp;</div>
+					<div class="row">
+						<div class="span4">
+							<center><button type="submit" class="btn btn-success">Submit Registration</button></center>
+						</div>
+					</div>
+				</form>
+			{% endif %}
+			<div>&nbsp;</div>
+			<div class="counter_well well span3">
+				<center><span><h4>Registration Counter: </span><label class="label counter">{{rsvp_counter}}</label></h4></center>
+				<center><button type="button" data-toggle="modal" data-target="#myModal"><i class="icon icon-eye-open"></i> See who's playing <i class="icon icon-eye-open"></i></button></center>
+			</div>
+			<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-header">
+					<h3 id="myModalLabel">Game #{{next_game_number}} - {{next_game_date}}</h3>
+				</div>
+				<div class="modal-body">
+					<h4>Who's Playing?</h4>
+					{% for p in player_list %}
+						<p><i class="icon-user"></i> {{ p.player.first_name }} {{ p.player.last_name }}</p>
+					{% endfor %}
+				</div>
+				<div class="modal-footer">
+					<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+				</div>
+			</div>
+			{% if not user.is_authenticated %}
+				<div class="row">
+					<div class="span4">
+						<center><p><h4><b>New to Bender's Garage?</b></h4></p></center>
+					</div>
+				</div>
+				<div class="row">
+					<div class="span4">
+						<center><p>Click<a href="{% url 'sign_up' %}"> <u>here</u></a> to sign up and join the league.</p></center>
+					</div>
+				</div>
+				<div class="row">
+					<div class="span4">
+						<center><p><h4><b>Forget your password?</b></h4></p></center>
+					</div>
+				</div>
+				<div class="row">
+					<div class="span4">
+						<center><p>Click <a href="{% url 'password_reset' %}"><u>here</u>.</a></p></center>
+					</div>
+				</div>
+			{% endif %}
+		</div>
+		</div>
+		<div class="row">
+			<div class="span4">
+        		<div class="header-div">BG Twitter</div>
+        		<div>&nbsp;</div>
+            	<a class="twitter-timeline" href="https://twitter.com/hashtag/BGpoker" data-widget-id="489901504472428544">#BGpoker Tweets</a>
+				<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+        	</div>
+    	</div>
+	</div>
+	<div id="left-side" class="span8 pull-left">
+		<div class="tabbable tabs-left">
+			<ul class="nav nav-tabs">
+				{% for n in news_rows %}
+					{% if forloop.first %}
+						<li class="active"><a class="news_link" href="#game{{n.pk}}" data-toggle="tab">{{ n.title }}</a></li>
+					{% else %}
+						<li><a class="news_link" href="#game{{n.pk}}" data-toggle="tab">{{ n.title }}</a></li>
+					{% endif %}
+				{% endfor %}
+			</ul>
+			<div class="tab-content">
+				{% for n in news_rows %}
+					{% if forloop.first %}
+						<div class="tab-pane active" id="game{{n.pk}}">
+							<div class="row">
+								<div class="span4">
+									<center><p><h4>{{ n.title }}</h4></p></center>
+								</div>
+							</div>
+							<div class="row">
+								<div class="span4">
+									{% if n.photo %}
+										<center><img class="img-polaroid" src="{{ n.photo.url }}"></center>
+									{% endif %}
+								</div>
+							</div>
+							<div class="row">
+								<div class="span">
+									<p><h5>{{ n.news|safe }}</h5></p>
+								</div>
+							</div>
+						</div>
+					{% else %}
+						<div class="tab-pane" id="game{{n.pk}}">
+							<div class="row">
+								<div class="span4">
+									<center><p><h4>{{ n.title }}</h4></p></center>
+								</div>
+							</div>
+							<div class="row">
+								<div class="span4">
+									{% if n.photo %}
+										<center><img class="img-polaroid" src="{{ n.photo.url }}"></center>
+									{% endif %}
+								</div>
+							</div>
+							<div class="row">
+								<div class="span">
+									<p><h5>{{ n.news|safe }}</h5></p>
+								</div>
+							</div>
+						</div>
+					{% endif %}
+				{% endfor %}
+			</div>
+		</div>
+		<div>&nbsp;</div><div>&nbsp;</div><div>&nbsp;</div><div>&nbsp;</div>
+		<div class="row">
+			<div class="span8">
+        		<center>
+        			<p><img class="site-logo" src="/static/images/bgclean.png" /></br>
+        			&copy; Bender's Garage {% now "Y" %}</p>
+        		</center>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+<script type="text/javascript">
+    $(function(){
+	$('#myModal').modal();
+    }):
+</script>

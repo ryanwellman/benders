@@ -1,0 +1,694 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Results Entry - Game {{game_number}}{% endblock %}
+
+{% block stylesheets %}
+    <style type="text/css">
+	.player-hoverme:hover {
+	    background-color: #FFFFCC;
+	}
+	.switches {
+	    width: 120px;
+	}
+	.changer {
+	    cursor: pointer;
+	    cursor: hand;
+	}
+	.header-div {
+	    background-color: #3D3C3A;
+            color: white;
+            font-size: 24px;
+            border-radius: 8px;
+            text-align: center;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            vertical-align: middle;
+	}
+	.btn-warning {
+	    color: black;
+	}
+    </style>
+{% endblock %}
+
+{% block content %}
+<form id="ResultsEntry" class="form-horizontal" method="POST">
+{% csrf_token %}
+<div class="row">
+    <div class="well span5">
+        <div class="row">
+            <div class="span3">
+                <h4>Summary</h4>
+            </div>
+        </div>
+        <div class="row">
+	    <div class="span5">
+		<table class="table table-condensed">
+		    <tr>
+			<td><b>Season:</b></td><td>{{current_season}}</td><td><b>Number of Rebuys:</b></td><td><span data-bind="text: total_rebuys"></span></td>
+		    </tr>
+		    <tr>
+			<td><b>Game Number:</b></td><td><span data-bind="text: game_number"></span></td>
+			<td><b>Number of Add Ons:</b></td><td><span data-bind="text: total_addons"></span></td>
+		    </tr>
+		    <tr>
+			<td><b>Number of Players:</b></td><td><span data-bind="text: total_players"></span></td><td><b>Base Points:</b></td><td><span data-bind="text: base_points"></span></td>
+		    </tr>
+		</table>
+	    </div>
+        </div>
+	<div class="row">
+	    <div class="span3">
+		<h4>Prize Pool: $<span data-bind="text: prize_pool"></span></h4>
+	    </div>
+	    <div class="span2">
+		<h4 data-bind="visible: !edit_payouts()"><button class="btn btn-mini btn-inverse pull-right" data-bind="click: payout_edit"><i class="icon-edit"></i> Edit Payouts <i class="icon-edit"></i></button></h4>
+		<h4 data-bind="visible: edit_payouts()"><button class="btn btn-mini btn-primary pull-right" data-bind="click: save_payouts"><i class="icon-save"></i> Save Payouts <i class="icon-save"></i></button></h4>
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="span5">
+		<table class="table">
+		    <tbody data-bind="foreach: payouts">
+			<tr>
+			    <td><b><span data-bind="text: place"></span> Place</b></td>
+			    <td data-bind="visible: !$root.edit_payouts()">$<span data-bind="text: amount"></span></td>
+			    <td data-bind="visible: $root.edit_payouts()"><input type="text" class="input input-small" data-bind="value: amount" /></td>
+			</tr>
+		    </tbody>
+		</table>
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="span5">
+		<h4>League Contribution: $<span data-bind="text: league_contribution"></span></h4>
+	    </div>
+	</div>
+	<div>&nbsp;</div>
+	<div class="row">
+	    <div class="span5">
+		<h4>Controls</h4>
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="span5">
+		<div class="control-group">
+	            <label class="control-label switches"><b>Still in Rebuy Period?</b></label>
+        	    <div class="controls">
+                	<input type="checkbox" data-bind="checked: rebuy_period, bootstrapswitch: {size: 'small', onColor: 'success', offColor: 'danger', onText: 'Yes', offText: 'No', onSwitchChange: function(evt, data){ rebuy_period(data); } }"/>
+            	    </div>
+        	</div>
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="span5">
+		<div class="control-group">
+		    <label class="control-label switches"><b>Edit Add Ons?</b></label>
+		    <div class="controls">
+			<input type="checkbox" data-bind="checked: has_addons, bootstrapswitch: {size: 'small', onColor: 'success', offColor: 'danger', onText: 'Yes', offText: 'No', onSwitchChange: function(evt, data){ has_addons(data); } }"/>
+		    </div>
+		</div>
+	    </div>
+	</div>
+	<div class="row" data-bind="visible: has_addons">
+	    <div class="span5">
+		<div class="control-group">
+		    <label class="control-label" for="add_ons"><b>Number of Add Ons</b></label>
+		    <div class="controls">
+			<input type="text" id="add_ons" class="input input-small" placeholder="Add Ons" data-bind="value: $data.total_addons, event: {blur: change_addons}"/>
+		    </div>
+		</div>
+	    </div>
+	</div>
+	<div class="row">
+	    <div class="span5">
+		<div class="control-group">
+		    <label class="control-label switches"><b>No Shows?</b></label>
+		    <div class="controls">
+			<input type="checkbox" data-bind="checked: no_shows, bootstrapswitch: {size: 'small', onColor: 'success', offColor: 'danger', onText: 'Yes', offText: 'No', onSwitchChange: function(evt, data){ no_shows(data); } } "/>
+		    </div>
+		</div>
+	    </div>
+	</div>
+    </div>
+    <div class="span6" data-bind="visible: !complete_game()">
+	<div class="header-div">
+	    Player List
+	</div>
+	<div>&nbsp;</div>
+	<table class="table table-condensed">
+	    <thead>
+		<th>Name</th>
+		<th data-bind="visible: !no_shows()"><center>Rebuys</center></th>
+		<th data-bind="visible: !no_shows()"><center>Bounty Pts</center></th>
+		<th data-bind="visible: !no_shows() && $root.rebuy_period"><center>Rebuy</center></th>
+		<th data-bind="visible: !no_shows()">Bust Out</th>
+	    </thead>
+	    <tbody data-bind="foreach: player_list">
+		<tr class="player-hoverme" data-bind="visible: !$root.no_shows()">
+		    <td><span data-bind="text: full_name"></span></td>
+		    <td class="changer" data-bind="visible: $root.rebuy_period && indiv_rebuys() > 0"><div class="show-tooltip" title="Click the minus symbol to subtract a rebuy"><center><span data-bind="text: indiv_rebuys"></span> <a class="icon-minus-sign pull-right" style="color:red" data-bind="click: subtract_rebuy"></a></center></div></td>
+		    <td data-bind="visible: !$root.rebuy_period || indiv_rebuys() == 0"><center><span data-bind="text: indiv_rebuys"></span></center></div></td>
+		    <td class="changer" data-bind="visible: display_bounty, click: edit_bounty"><div class="show-tooltip" title="Click on the points to edit bounty points"><center><span data-bind="text: bounty_points"></span></center></div></td>
+		    <td data-bind="visible: enter_bounty"><center><input class="input-mini" data-bind="hasFocus: enter_bounty, value: $data.bounty_points, event: {blur: change_bounty}" /></center></td>
+		    <td data-bind="visible: $root.rebuy_period"><button class="btn btn-success btn-mini" data-bind="click: add_rebuy"><i class="icon-dollar"></i> Rebuy <i class="icon-dollar"></i></button></td>
+		    <td><button class="btn btn-danger btn-mini" data-bind="click: $root.bust_out.bind($data, player_id)"><i class="icon-ban-circle"></i> Bust Out <i class="icon-ban-circle"></i></button></td>
+		</tr>
+		<tr class="player-hoverme" data-bind="visible: $root.no_shows()">
+		    <td><span data-bind="text: full_name"></span></td>
+		    <td colspan="5"><button class="btn btn-mini btn-warning" data-bind="click: $root.remove_noshow.bind(player_id)"><i class="icon-warning-sign"></i> Remove as NO SHOW <i class="icon-warning-sign"></i></button></td>
+		</tr>
+	    </tbody>
+	</table>
+    </div>
+    <div class="span6" data-bind="visible: complete_game()">
+	<h3><center>The game is now complete!</center></h3>
+	<p><center>Click the "Finalize Game" button below to close the game out, or, make any needed changes to the player table below.</center></p>
+	<p><center><button class="btn btn-success" data-bind="click: finalize_game"><i class="icon-legal"></i> Finalize Game <i class="icon-legal"></i></button>
+    </div>
+</div>
+    <div class="row" data-bind="visible: has_busted">
+	<div>&nbsp;</div>
+        <div class="span12">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <th>Place</th>
+                    <th>Player</th>
+                    <th><center>Indiv. Rebuys</center></th>
+		    <th><center>Rebuy Mod.</center></th>
+		    <th><center>Balloon Mod.</center></th>
+		    <th><center>Raw Pct.</center></th>
+		    <th><center>Raw Pts.</center></th>
+		    <th><center>Pct.</center></th>
+                    <th><center>Tourney Pts.</center></th>
+                    <th><center>Bounty Pts.</center></th>
+                    <th><center>Total Pts.</center></th>
+                    <th><center>Edit</center></th>
+                </thead>
+                <tbody data-bind="foreach: busted_players">
+            	    <tr>
+                	<td data-bind="visible: !editing()"><span data-bind="text: place"></span></td>
+			<td data-bind="visible: editing()"><a class="changer icon-arrow-up icon-large" style="color:green" data-bind="visible: !highest_spot(), click: move_up.bind($data)"></a><span data-bind="visible: !highest_spot()"><br></span><span data-bind="text: place"></span><br><a class="changer icon-arrow-down icon-large" style="color:red" data-bind="visible: !lowest_spot(), click: move_down.bind($data)"></a></td>
+                	<td><span data-bind="text: player.full_name"> </span><br><button class="btn btn-warning btn-mini" data-bind="visible: editing(), click: $root.undo_bust.bind($data, player.player_id, player.full_name)"> <i class="icon-level-up"></i> Unbust <i class="icon-level-up"></i></button></td>
+                	<td data-bind="visible: editing()"><center><input class="input-mini" data-bind="value: $data.edited_rebuys" /></center></td>
+			<td data-bind="visible: !editing()"><center><span data-bind="text: player.indiv_rebuys"></span></center></td>
+                	<td><center><span data-bind="text: rebuy_mod"></span></center></td>
+                	<td><center><span data-bind="text: balloon_mod"></span></center></td>
+                	<td><center><span data-bind="text: raw_percent"></span></center></td>
+                	<td><center><span data-bind="text: raw_points"></span></center></td>
+                	<td><center><span data-bind="text: percent"></span></center></td>
+                	<td><center><span data-bind="text: tourney_points"></span></center></td>
+                	<td data-bind="visible: editing()"><center><input class="input-mini" data-bind="value: $data.edited_bounty_points" /></center></td>
+			<td data-bind="visible: !editing()"><center><span data-bind="text: player.bounty_points"></span></center></td>
+                	<td><center><span data-bind="text: total_points"></span></center></td>
+                	<td data-bind="visible: editing()"><center><button class="btn btn-primary btn-mini" data-bind="click: save_edit.bind($data)"><i class="icon-save"></i> Save</button></center></td>
+			<td data-bind="visible: !editing()"><center><button class="btn btn-inverse btn-mini" data-bind="click: edit_bust.bind($data)"><i class="icon-edit"></i> Edit</button></center></td>
+            	    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div>&nbsp;</div>
+    <!--
+    <div class="row">
+        <div class="span12">
+            <pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
+        </div>
+    </div>
+    -->
+<script type="text/javascript">
+window.BALMOD = {{ bal_mod|safe }};
+window.SEASON = {{ current_season|safe }};
+window.GAMEID = {{ game_id|safe }};
+window.GAMENUMBER = {{ game_number|safe }};
+window.NUMPLAYERS = {{ num_players|safe }};
+window.STILLIN = {{ still_in|safe }};
+window.BUSTEDOUT = {{ busted_out|safe }};
+window.PAYOUTS = {{ payouts|safe }};
+window.REBUY_COUNT = {{ rebuy_count|safe }};
+window.ADD_ON_COUNT = {{ add_on_count|safe }};
+$(function(){
+    var BustedViewModel = function(player, place, entries, rebuys, initial) {
+        var self = this;
+        self.editing = ko.observable(false);
+        self.place = ko.observable(+(place));
+        self.player = player[0];
+	self.busted_rebuys = ko.computed(function() {
+	    return +(rvm.total_rebuys());
+	});
+    	self.base = ko.computed(function() {
+	    return 3 * (rvm.total_players + self.busted_rebuys());
+   	});
+
+        self.rebuy_mod = ko.computed(function() {
+            return entries + self.busted_rebuys() - (self.player.indiv_rebuys() * 2);
+        });
+        self.balloon_mod = ko.computed(function() {
+            var mod = _.find(window.BALMOD, function(b) {
+                return b.place == self.place(); 
+            });
+            return mod.modifier;
+        });
+        self.raw_percent = ko.computed(function() {
+	    var result = ((1 - (self.place()/(entries + self.busted_rebuys()))) * 100) * self.balloon_mod();
+            return result.toFixed(2);
+        });
+        self.raw_points = ko.computed(function() {
+            return Math.ceil((self.raw_percent()/100 * self.base()) + 1);
+        });
+        self.percent = ko.computed(function() {
+	    var result = ((1 - (self.place()/self.rebuy_mod())) * (100 * self.balloon_mod()));
+            return result.toFixed(2);
+        });
+        self.tourney_points = ko.computed(function() {
+            return Math.ceil((self.percent()/100 * self.base()) + 1);
+        });
+        self.total_points = ko.computed(function() {
+            return +(self.tourney_points()) + +(self.player.bounty_points());
+        });
+        
+        self.edited_rebuys = ko.observable(self.player.indiv_rebuys());
+        self.edited_bounty_points = ko.observable(self.player.bounty_points());
+        self.edit_bust = function() {
+            self.editing(true);
+            return;
+        };
+
+	self.highest_spot = ko.computed(function() {
+	    var highest = _.every(rvm.busted_players(), function(b) {
+		return self.place() <= b.place();
+	    });
+	    return highest;
+	});
+
+	self.lowest_spot = ko.computed(function() {
+	    if (self.place() == rvm.total_players) {
+		return true;
+	    }
+	    return false;
+	});
+
+	self.move_up = function(data) {
+	    var current_player = data;
+	    var bust_out = "True";
+	    var swap_with = _.find(rvm.busted_players(), function(b) {
+		return b.place() == current_player.place() - 1;
+	    });
+	    current_player.place(swap_with.place());
+	    swap_with.place(+(current_player.place() + 1));
+	    rvm.send_ajax(current_player, bust_out);
+	    rvm.send_ajax(swap_with, bust_out);
+	    rvm.busted_players.sort(function(a,b) {
+                return a.place() == b.place() ? 0 : (a.place() < b.place() ? -1 : 1)
+            });
+	    self.editing(false);
+	    return;
+	};
+
+	self.move_down = function(data) {
+	    var current_player = data;
+	    var bust_out = "True";
+	    var swap_with = _.find(rvm.busted_players(), function(b) {
+		return b.place() == current_player.place() + 1;	
+	    });
+	    current_player.place(swap_with.place());
+	    swap_with.place(+(current_player.place() - 1));
+	    rvm.send_ajax(current_player, bust_out);
+	    rvm.send_ajax(swap_with, bust_out);
+	    rvm.busted_players.sort(function(a,b) {
+                return a.place() == b.place() ? 0 : (a.place() < b.place() ? -1 : 1)
+            });
+	    self.editing(false);
+	    return;
+	};
+
+        self.save_edit = function() {
+            self.player.indiv_rebuys(+(self.edited_rebuys()));
+            self.player.bounty_points(+(self.edited_bounty_points()));
+            self.editing(false);
+	    var bust_out = "True";
+	    rvm.send_ajax(self, bust_out);
+            return;
+        };
+	return;
+    };
+
+    var PlayerViewModel = function(player) {
+        var self = this;
+        self.player_id = player.id;
+	self.full_name = player.full_name;
+        self.indiv_rebuys = ko.observable(+(player.rebuys));
+        self.add_rebuy = function() {
+            self.indiv_rebuys(self.indiv_rebuys() + 1);
+	    var bust_out = "False";
+	    rvm.send_ajax(self, bust_out); 
+	    if (rvm.busted_players().length > 0) {
+		bust_out = "True";
+		_.each(rvm.busted_players(), function(p) {
+		    rvm.send_ajax(p, bust_out);
+		});
+	    }
+            return;
+        };
+	self.subtract_rebuy = function() {
+	    self.indiv_rebuys(self.indiv_rebuys() - 1);
+	    var bust_out = "False";
+	    rvm.send_ajax(self, bust_out);
+	    if (rvm.busted_players().length > 0) {
+		bust_out = "True";
+		_.each(rvm.busted_players(), function(p) {
+		    rvm.send_ajax(p, bust_out);
+		});
+	    }
+	};
+        self.bounty_points = ko.observable(+(player.bounty_points));
+	self.display_bounty = ko.observable(true);
+	self.enter_bounty = ko.observable(false);
+	self.edit_bounty = function(evt) {
+	    self.display_bounty(false);
+	    self.enter_bounty(true);
+	};
+	self.change_bounty = function() {
+	    self.enter_bounty(false);
+	    self.display_bounty(true);
+	    self.bounty_points(+(self.bounty_points()));
+	    var bust_out = "False";
+	    rvm.send_ajax(self, bust_out);
+	};
+	return;
+    };
+
+    var BreakdownPayout = function(payout) {
+	var self = this;
+	self.payout_object = payout;
+	delete self.payout_object['players'];
+        delete self.payout_object['number_paid'];
+	for (var i in self.payout_object) {
+	    if (self.payout_object[i] === null || self.payout_object[i] === undefined) {
+		delete self.payout_object[i];
+	    }
+	};
+	return self.payout_object;
+    };
+
+    var PayoutViewModel = function(place, amount) {
+	var self = this;
+	console.log("pvm", place);	
+	String.prototype.capitalize = function() {
+	    return this.charAt(0).toUpperCase() + this.slice(1);
+	};
+	self.place = ko.observable(place.capitalize());
+	self.amount = ko.observable(amount);
+    };
+
+    var ResultsViewModel = function() {
+        var self = this;
+	self.game_number = window.GAMENUMBER;
+        self.rebuy_period = ko.observable(true);
+	self.has_addons = ko.observable(false);
+	self.no_shows = ko.observable(false);
+	self.edit_payouts = ko.observable(false);
+        self.total_players = +(window.NUMPLAYERS);
+
+    	self.payouts = ko.observableArray();
+	if (self.total_players <= 45) {
+	    var breakdown = _.find(window.PAYOUTS, function(p) {
+	    	return p.fields.players == self.total_players;
+  	    });
+	    var broken = BreakdownPayout(breakdown.fields);
+	    for (var i in broken) {
+	    	var place = i.slice(0, -6);
+	    	var amount = broken[i].slice(0, -3);
+	       	self.payouts.push(new PayoutViewModel(place, amount));
+	    };
+	    self.payouts.sort(function(a,b) {
+	    	return +(a.amount()) == +(b.amount()) ? 0 : (+(a.amount()) > +(b.amount()) ? -1 : 1);
+	    });
+	};
+	if (self.total_players > 45) {
+	    var overflow = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh']
+	    for (var i=0; i<overflow.length; i++) {
+		var amount = 0;
+		var place = overflow[i];
+		self.payouts.push(new PayoutViewModel(place, amount));
+	    };
+	};
+
+        self.player_list = ko.observableArray();
+        self.busted_players = ko.observableArray();
+	_.each(window.STILLIN, function(si) {
+	    self.player_list.push(new PlayerViewModel(si));
+	});
+	
+	
+	self.initial_busts = function() {
+	    _.each(window.BUSTEDOUT, function(bo) {
+	    	var busted = [];
+            	busted.push(new PlayerViewModel(bo));
+		var initial = true;
+            	self.busted_players.push(new BustedViewModel(busted, bo.place, self.total_players, self.total_rebuys(), initial));
+	    });
+	};
+	self.busted_players.sort(function(a,b) {
+            return a.place() == b.place() ? 0 : (a.place() < b.place() ? -1 : 1);
+        });
+ 		
+        self.total_rebuys = ko.computed(function() {
+            var rebuys = 0;
+            _.each(self.player_list(), function(p) {
+                rebuys += +(p.indiv_rebuys());
+            });
+            if (self.busted_players().length > 0) {
+                _.each(self.busted_players(), function(p) {
+                    rebuys += +(p.player.indiv_rebuys());
+                });
+            }
+            return rebuys;
+        });
+        self.base_points = ko.computed(function() {
+            return 3 * (self.total_players + self.total_rebuys());
+        });
+
+	self.first_place = ko.observable();
+	self.second_place = ko.observable();
+	self.third_place = ko.observable();
+	self.fourth_place = ko.observable();
+	self.prize_pool = ko.computed(function() {
+	    return self.total_players * 40;
+	});
+	self.assign_initial_payouts = function() {
+	    var first = Math.round((self.total_players * 40) * .45);
+	    var second = Math.round((self.total_players * 40) * .3);
+	    var third = Math.round((self.total_players * 40) * .15);
+	    var fourth = Math.round((self.total_players * 40) * .1);
+	    self.first_place(first);
+	    self.second_place(second);
+	    self.third_place(third);
+	    self.fourth_place(fourth);
+	};
+
+	self.total_addons = ko.observable(window.ADD_ON_COUNT);
+	self.change_addons = function() {
+	    self.has_addons(false);
+	    self.addon_ajax();
+	};
+	self.league_contribution = ko.computed(function() {
+	    var league_rebuys = ko.computed(function() {
+		return self.total_rebuys() * 20;
+	    });
+	    var league_addons = ko.computed(function() {
+		return self.total_addons() * 10;
+	    });
+	    return league_rebuys() + league_addons();
+	});
+	self.payout_edit = function() {
+	    self.edit_payouts(true);
+	};
+	self.save_payouts = function() {
+	    var total = +(self.first_place()) + +(self.second_place()) + +(self.third_place()) + +(self.fourth_place())
+	    if (total > self.prize_pool()) {
+		if (confirm("Your adjusted payouts are more than the prize pool has in it.  Are you sure you want to continue with these amounts?")) {
+		    self.edit_payouts(false);
+		} else {
+		    self.assign_initial_payouts();
+		}
+	    };
+	    if (total < self.prize_pool()) {
+		if (confirm("Your adjusted payouts do not add up to the amount that should be  in the prize pool.  You pocketing money?")) {
+		    self.edit_payouts(false);
+		} else {
+		    self.assign_initial_payouts();
+		}
+	    }
+	    if (total == self.prize_pool()) {
+		self.edit_payouts(false);
+	    }
+	};
+	
+	self.remove_noshow = function(player) {
+	    var no_show = _.find(self.player_list(), function(p) {
+		return p.player_id == player.player_id;
+	    });
+	    if (confirm("You are about to remove " + no_show.full_name + " from the tournament.  Would you like to proceed?")) {
+	    	self.player_list.remove(no_show);
+		if (self.busted_players().length > 0) {
+		    _.each(self.busted_players(), function(bp) {
+			bp.place(bp.place() - 1);
+			var bust_out = "True";
+			self.send_ajax(bp, bust_out);
+		    });
+		}
+		$.ajax({
+		    type: "GET",
+		    url: "/ajax_remove_noshow",
+		    dataType: "json",
+		    data: {
+			"player_id": no_show.player_id,
+			"game_id": window.GAMEID
+		    },
+		    success: function(data){
+			var page = "/results_entry/" + window.GAMENUMBER;
+			window.location.href = page
+		    }	    
+		});
+	    }
+	};
+	
+        
+        self.has_busted = ko.computed(function() {
+            if (self.busted_players().length > 0) {
+                return true;
+            }
+            return false;
+        });
+        
+	self.complete_game = ko.computed(function() {
+	    if (self.player_list().length == 0) {
+		self.rebuy_period(false);
+		return true;
+	    }
+	    return false;
+	});
+
+        self.bust_out = function(player_id) {
+            var entries = +(window.NUMPLAYERS);
+            var place = self.total_players - self.busted_players().length;
+            var busted = self.player_list.remove(function(p) {
+                return p.player_id == player_id;
+            });
+	    var initial = false;
+	    var result = new BustedViewModel(busted, place, entries, self.total_rebuys(), initial);
+	    var bust_out = "True";
+	    self.busted_players.unshift(result);
+	    self.send_ajax(result, bust_out);
+        };
+
+	self.undo_bust = function(player_id, player_name) {
+	    if (confirm("You are about to put " + player_name + " back into the tournament.")) {
+	    	var unbust = self.busted_players.remove(function(p) {
+		    return p.player.player_id == player_id;
+	    	});
+	    	var unbusted = unbust[0].player;
+	    	self.player_list.push(unbusted);
+	    	self.undo_ajax(unbusted.player_id);
+	    }
+	};
+
+	self.undo_ajax = function(player_id) {
+	    $.ajax({
+		type: "GET",
+		url: "/ajax_undo_result",
+		dataType: "json",
+		data: {
+		    "player_id": player_id,
+		    "game_id": window.GAMEID
+		},
+		success: function(data) {
+		    console.log("undo data", data);
+		}
+	    });
+	};
+
+	self.send_ajax = function(result, bust_out) {
+	    console.log("sending ajax with ", bust_out, result);
+	    var jsonData = ko.toJSON(result);
+	    console.log("json", jsonData);
+	    $.ajax({
+		type: "GET",
+		url: "/ajax_results",
+		dataType: "json",
+		data: {
+		    "jsonData": jsonData,
+		    "game_id": window.GAMEID,
+		    "bust_out": bust_out,
+		    "add_ons": self.total_addons()
+		},
+		success: function(data) {
+		    console.log("ajax data", data);
+		}
+	    });
+	};
+
+	self.addon_ajax = function() {
+	    $.ajax({
+		type: "GET",
+		url: "/ajax_add_on",
+		dataType: "json",
+		data: {
+		    "game_id": window.GAMEID,
+		    "add_ons": self.total_addons()
+		},
+		success: function(data) {
+		    console.log("ajax data", data);
+		}
+	    });
+	};
+
+	self.finalize_game = function() {
+	    $.ajax({
+		type: "GET",
+		url: "/ajax_finalize_game",
+		dataType: "json",
+		data: {
+		    "game_id": window.GAMEID,
+		    "entries": window.NUMPLAYERS,
+		    "rebuys": self.total_rebuys(),
+		    "add_ons": self.total_addons(),
+		    "base_points": self.base_points(),
+		    "first_place": self.first_place(),
+		    "second_place": self.second_place(),
+		    "third_place": self.third_place(),
+		    "fourth_place": self.fourth_place(),
+		    "prize_pool": self.prize_pool(),
+		    "league_contribution": self.league_contribution(),
+		},
+		success: function(data) {
+		    window.location.href = "/benders_admin"
+		}
+	    });
+	};
+    };
+
+    var rvm = new ResultsViewModel();
+    ko.applyBindings(rvm);
+
+    rvm.assign_initial_payouts();
+    
+    if (window.BUSTEDOUT.length > 0) {
+	rvm.initial_busts();
+    };
+    $('.show-tooltip').each(function(e) {
+	var p = $(this).parent();
+	if(p.is('td')) {
+	    $(this).css('padding', p.css('padding'));
+	    p.css('padding', '0 0');
+	}
+	$(this).tooltip({
+	    toggle: 'tooltip',
+	    placement: 'bottom'
+	});
+    });
+
+});
+</script>
+
+{% endblock %}
+

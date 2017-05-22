@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<center><h2>Select Schedule</h2></center>
+<form id="Select Schedule" class="form-horizontal" method="POST">
+    {% csrf_token %}
+    <div class="control-group">
+        <label class="control-label" for="news_number">Select Game to Edit: </label>
+        <div class="controls">
+            <select class="input-xlarge" name="schedule_id">
+                <option></option>
+                {% for s in schedule %}
+                    <option value="{{s.game_id}}">{{ s.game_number }} - {{ s.when|date }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-info"><i class="icon icon-arrow-right icon-white"></i> Next</button>
+	<a href="{% url 'benders_admin' %}" class="btn">Cancel</a>
+    </div>
+</form>
+{% endblock %}
+

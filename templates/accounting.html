@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% block pagetitle %}League Accounting{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="span5">
+	<div class="well">
+	    League Summary
+	</div>
+	    <div data-bind="foreach: toc_tables">
+	    	<table>
+	   	    <tr>
+		    	<th colspan="2">
+			    <span data-bind="text: title"></span> - $<span data-bind="text: table_total"></span>
+		    	</th>
+		    </tr>
+		    <tr>
+			<th>Place</th>
+			<th>Amount</th>
+		    </tr>
+		    <tbody data-bind="foreach: payouts">
+			<tr>
+			    <td><span data-bind="text: place"></span></td>
+			    <td><span data-bind="text: amount"></span></td>
+			</tr>
+		    </tbody>
+	    	</table>
+	    </div>
+    </div>
+    <div class="span6" data-bind="foreach: player_results">
+    	<h4><span data-bind="text: name"></span></h4>
+        <div>
+    	    <table class="table table-bordered table-condensed">
+	    	<thead>
+	    	    <th>Game</th>
+	    	    <th>Place</th>
+	    	    <th>Rebuys</th>
+		    <th>Add On</th>
+		    <th>Money Spent</th>
+		    <th>Profit/Loss</th>
+	    	</thead>
+	    	<tbody data-bind="foreach: weekly_results">
+		    <tr>
+		    	<td><span data-bind="text: game_number"></span></td>
+		     	<td><span data-bind="text: place"></span></td>
+		    	<td><span data-bind="text: rebuys"></span></td>
+		     	<td><span data-bind="text: used_add_on"></span></td>
+		    	<td><span data-bind="text: money_spent"></span></td>
+		    	<td><span data-bind="text: money_made"></span></td>
+		    </tr>
+	    	</tbody>
+    	    </table>
+    	</div>
+    </div>
+</div>
+<div class="row">
+    <div class="span12">
+        <pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript_variables_nocompress %}
+<script type="text/javascript">
+    window.PLAYERBREAKDOWN = {{ player_breakdown|safe }};
+    window.WEEKLYACCOUNTING = {{ weekly_accounting|safe }};
+</script>
+{% endblock %}
+
+{% block javascript_compress %}
+<script type="text/javascript">
+$(function() {
+    var gold_payouts = [{'place': '1st', 'pct': 37.00}, {'place': '2nd', 'pct': 21.75}, {'place': '3rd', 'pct': 11.00}, {'place': '4th', 'pct': 11.00}, {'place': '5th', 'pct': 7.00}, {'place': '6th', 'pct': 4.50}, {'place': '7th', 'pct': 3.00}, {'place': '8th', 'pct': 2.00}, {'place': '9th', 'pct': 1.50}, {'place': '10th', 'pct': 1.25}]
+    var silver_payouts = [{'place': '1st', 'pct': 44.00}, {'place': '2nd', 'pct': 33.00}, {'place': '3rd', 'pct': 23.00}]
+    var bronze_payouts = [{'place': '1st', 'pct': 65.00}, {'place': '2nd', 'pct': 35.00}]
+
+    var GetLeagueMoney = function() {
+        var total = 0;
+        _.each(window.WEEKLYACCOUNTING, function(wlr) {
+            total += +(wlr.toc_payout);
+        });
+        return total;
+    };
+
+    var WeeklyResult = function(result) {
+        var self = this;
+	self.game_number = result.game_number;
+	self.place = result.place;
+        self.rebuys = result.rebuys;
+        self.used_add_on = ko.observable('no');
+        if (result.add_on) {
+            self.used_add_on('yes');
+        }
+        self.money_spent = ko.computed(function() {
+            var adder = 0;
+            if (result.add_on) {
+                adder = 10;
+            }
+            return (40 + self.rebuys * 20 + adder)
+        });
+        self.money_made = ko.computed(function() {
+	    if (result.money_won) {
+		
+	    }
+            if (result.place <=4) {
+		var prizes;
+		_.each(window.WEEKLYACCOUNTING, function(wa) {
+		    if (result.game_number == wa.game_number) {
+			prizes = wa;
+		    };
+		});
+		console.log("prizes", prizes);
+                if (result.place == 1) {
+                    return prizes.first_place - self.money_spent();
+                }
+                if (result.place == 2) {
+                    return prizes.second_place - self.money_spent();
+                }
+                if (result.place == 3) {
+                    return prizes.third_place - self.money_spent();
+                }
+                if (result.place == 4) {
+                    return prizes.fourth_place - self.money_spent();
+                }
+            } else {
+                return -(self.money_spent());
+            }
+        });
+    };
+
+    var IndividualPlayerModel = function(player) {
+        var self = this;
+        self.name = player.full_name;
+        self.id = player.id;
+        self.weekly_results = ko.observableArray();
+        _.each(player.results, function(result) {
+            self.weekly_results.push(new WeeklyResult(result));
+        });
+    };
+
+    var TocTableModel = function(title, color, percent, payout_group){
+	var self = this;
+	self.title = title;
+	self.color = color;
+	self.expand = ko.observable(false);
+	self.table_total = ko.computed(function() {
+	    return GetLeagueMoney() * percent;
+	});
+	self.payouts = ko.observableArray();
+	_.each(payout_group, function(pg){
+	    payout = {}
+	    payout['place'] = pg.place;
+	    payout['amount'] = ((pg.pct/100) * +(self.table_total())).toFixed(2);
+	    self.payouts.push(payout);
+	});	
+	console.log("payouts", self.payouts());
+    };
+
+    var AccountingViewModel = function() {
+        var self = this;
+        self.weekly_league_results = ko.observableArray();
+        _.each(window.WEEKLYACCOUNTING, function(week) {
+            self.weekly_league_results.push(week);
+        });
+        self.player_results = ko.observableArray();
+        _.each(window.PLAYERBREAKDOWN, function(player) {
+            self.player_results.push(new IndividualPlayerModel(player));
+        });
+	self.toc_tables = ko.observableArray();
+	self.toc_tables.push(new TocTableModel('Gold', 'FDD017', .9, gold_payouts));
+	self.toc_tables.push(new TocTableModel('Silver', 'C0C0C0', .09, silver_payouts));
+	self.toc_tables.push(new TocTableModel('Bronze', 'CD7F32', .01, bronze_payouts));
+	_.each(self.toc_tables(), function(t) {
+	    console.log("table", t);
+	});
+    };
+
+    var avm = new AccountingViewModel();
+    ko.applyBindings(avm);
+    console.log("avm", avm);
+
+    GetLeagueMoney = function() {
+	var total = 0;
+	_.each(avm.weekly_league_results, function(wlr) {
+	    total += wlr.toc_payout;
+	});
+	return total;
+    };
+});
+</script>
+{% endblock %}

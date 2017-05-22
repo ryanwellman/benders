@@ -1,0 +1,4 @@
+*.pyc
+settings.py
+templates/tournament_clock.html
+migrations/*

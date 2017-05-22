@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <script type="text/javascript" src="{% static 'js/jquery-1.10.1.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/knockout-3.0.0.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/underscore.js' %}"></script>
+
+    <link href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.0.1/css/bootstrap2/bootstrap-switch.css" rel="stylesheet">
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/bootstrap-switch/3.0.1/js/bootstrap-switch.js"></script>
+
+    <style type="text/css">
+	body {
+	    padding-top: 28px;
+	    background: url({% static 'images/benders_background.png' %});
+	}
+	.container > .content {
+	    padding: 20px;
+	    background-color: black;
+	    margin: 0 -20px;
+	    color: white;
+	    border-radius: 18px;
+	}
+	.standings-table {
+	    text-align: center;
+	}
+	.summary-well {
+	    background-color: #D1D0CE;
+	    color: black;
+	}
+	.nav-header {
+	    color: #151B54;
+	    font-size: 120%;
+	}
+	.board-assignment {
+	    background-color: #98AFC7;
+	    color: black;
+	    text-align: center;
+	}
+	.board-info {
+	    font-weight: bold;
+	}
+	.green-advance {
+	    background-color: #B5EAAA;
+	    color: black;
+	}
+	.yellow-advance {
+	    background-color: #FFE87C;
+	    color: black;
+	}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <div class="page-header">
+            </div>
+            <div class="row">
+                <div class="span12">
+                    <div data-bind="visible: begin()">
+                        <p>Select Bar:
+                            <select data-bind="options: availableBars, value: venue"></select>
+                        </p>
+                        <p>Entry Fees: <input data-bind="value: entry_fee" /></p>
+                        <p><button class="btn btn-success" data-bind="click: start_signups.bind($data)">Start Signups</button></p>
+                    </div>
+                </div>
+
+                <div class="span5">
+                    <div class="row">
+                        <div class="span5">
+                            <div data-bind="visible: signups()">
+                                <h3>Player Sign Ups</h3>
+                                <table class="table">
+                                    <thead>
+                                        <th>Player Name</th>
+                                        <th>Paid</th>
+                                        <th></th>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input data-bind="value: r_player" /></td>
+                                            <!--<td><input type="checkbox" name="paid_checkbox" data-bind="bootstrapSwitchPaid: r_paid" /></td>-->
+					    <td><input type="checkbox" data-bind="checked: r_paid" /></td>
+                                            <td class="pull-right"><button class="btn btn-primary" data-bind="click: add_players.bind($data)">Add Player</button></td>
+                                        </tr>
+                                </table>
+				<div>&nbsp;</div>
+                            </div>
+                        </div>
+                    </div>
+		    <div class="row" data-bind="visible: signups()">
+			<button class="span5 btn btn-success btn-large" data-bind="click: start_tournament.bind($data)">Start Tournament</button>
+		    </div>
+                    <div class="row">
+                        <div class="span5" data-bind="visible: summary_well()">
+                            <div>&nbsp;</div>
+                            <div class="well summary-well">
+                                <ul class="nav nav-list">
+                                    <center><li class="nav-header">Tournament Summary</li></center>
+                                    <li>Registered Players: <span class="pull-right" data-bind="text: registered_players"></span></li>
+                                    <li>Player Entry Fees: <span class="pull-right" data-bind="text: entry_fees"></span></li>
+				    <li>Bar Contribution: <span class="pull-right" data-bind="text: bar_contribution"></span></li>
+				    <li>Tournament Pot: <span class="pull-right" data-bind="text: tournament_pot"></span></li>
+				    <!-- ko if: venue() === 'TBags' -->
+				    	<li>Double Shot Pot: <span class="pull-right" data-bind="text: double_shot"></span></li>
+				    <!-- /ko -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="span5" data-bind="visible: unpaid_players">
+                            <h4>Unpaid Players</h4>
+                            <table>
+                                <tr data-bind="foreach: players">
+                                    <!-- ko if: !paid() -->
+                                        <td><span data-bind="text: player_name"></span></td>
+                                        <td><input type="checkbox" name="unpaid_checkbox" data-bind="checked: paid" /></td>
+                                    <!-- /ko -->
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+		    <div class="row">
+			<div class="span5" data-bind="visible: matchups_set">
+			    <h4>Next Game (<span data-bind="text: next_game"></span>) Matchups:</h4>
+			    <table class="table">
+				<tbody data-bind="foreach: matchups">
+				    <tr class="board-assignment">
+					<td><em><center>Winner</em></center></td>
+					<td colspan="3" class="board-info"><center>Board <span data-bind="text: board"></span></center></td>
+					<td><em><center>Winner</em></center></td>
+				    </tr>
+				    <tr>
+					<td><center><input type="checkbox" value="teamA" data-bind="checked: teamA_winner"/></center></td>
+					<td data-bind="foreach: teamA"><center><span data-bind="text: player.player_name"></span> </center></td>
+					<td><center> VS <center></td>
+					<td data-bind="foreach: teamB"><center><span data-bind="text: player.player_name"></span> </center></td>
+					<td><center><input type="checkbox"  value="teamB" data-bind="checked: teamB_winner"/></center></td>
+				    </tr>
+				</tbody>
+			    </table>
+			    <div data-bind="visible: byes">
+			    	<h4>Players With Bye:</h4>
+			    	<div data-bind="foreach: round_byes">
+				    <p><span data-bind="text: player.player_name"></span></p>
+			    	</div>
+			    </div>
+			</div>
+		    </div>
+		    <div class="row">
+			<div class="span5" data-bind="visible: next_round_button">
+			    <center><button class="btn btn-success" data-bind="click: next_round.bind($data)">Enter Round</button></center>
+			</div>
+		    </div>
+                </div>
+                <div class="span7">
+                    <div data-bind="visible: player_table()">
+                        <h3><center>Tournament Standings</center></h3>
+                        <table class="table table-condensed">
+                            <thead>
+                                <th>Player Name</th>
+                                <th class="standings-table">501</th>
+                                <th class="standings-table">Cricket</th>
+                                <th class="standings-table">501</th>
+                                <th class="standings-table">Cricket</th>
+                                <th class="standings-table">Choice</th>
+                                <th class="standings-table">Total</th>
+                            </thead>
+                            <tbody data-bind="foreach: players">
+				<!-- ko if: place() < $parent.cutoff_place() -->
+				    <tr class="green-advance">
+					<td><span data-bind="text: player_name"></span></td>
+					<!-- ko foreach: results -->
+					    <td><span data-bind="text: result()"></span></td>
+					<!-- /ko -->
+					<td><span data-bind="text: player_total"></span> (<span data-bind="text: place"></span>)</td>
+				    </tr>
+				<!-- /ko -->
+				<!-- ko if: place() === $parent.cutoff_place() -->
+				    <tr class="yellow-advance">
+					<td><span data-bind="text: player_name"></span></td>
+					<!-- ko foreach: results -->
+					    <td><span data-bind="text: result()"></span></td>
+					<!-- /ko -->
+					<td><span data-bind="text: player_total"></span> (<span data-bind="text: place"></span>)</td>
+				    </tr>
+				<!-- /ko -->
+				<!-- ko if: place() > $parent.cutoff_place() -->
+				    <tr>
+                                        <td><span data-bind="text: player_name"></span></td>
+                                        <!-- ko foreach: results -->
+                                            <td><span data-bind="text: result()"></span></td>
+                                        <!-- /ko -->
+                                        <td><span data-bind="text: player_total"></span> (<span data-bind="text: place"></span>)</td>
+                                    </tr>
+				<!-- /ko -->
+				<!-- ko if: place() === 99 -->
+				    <tr>
+					<td colspan="7"><span data-bind="text: player_name"></span></td>
+				    </tr>
+				<!-- /ko -->
+                            </tbody>
+                        </table>
+			<h4>Number of Players That Will Advance: <span data-bind="text: num_advancing"></span></h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+	<div>
+	    <!--<pre data-bind="text: ko.toJSON($data, null, 2)"></pre>-->
+	</div>
+    </div>
+
+   
+    <script type="text/javascript">
+    $(function(){
+	/*
+	ko.bindingHandlers.bootstrapSwitchPaid = {
+    	    init: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+        	$elem = $(element);
+        	$(element).bootstrapSwitch();
+        	$(element).bootstrapSwitch('setState', ko.utils.unwrapObservable(valueAccessor())); // Set intial state
+        	$elem.on('switch-change', function (e, data) {
+            	    valueAccessor()(data.value);
+        	}); // Update the model when changed.
+    	    },
+    	    update: function (element, valueAccessor, allBindingsAccessor, viewModel) {
+        	var vStatus = $(element).bootstrapSwitch('state');
+        	var vmStatus = ko.utils.unwrapObservable(valueAccessor());
+        	if (vStatus != vmStatus) {
+            	    $(element).bootstrapSwitch('setState', vmStatus);
+        	}
+   	    }
+	};
+	*/
+	var initial_results = [{'result': ''}, {'result': ''}, {'result': ''}, {'result': ''}, {'result': ''}] 
+
+	var ShuffleModel = function(o) { 
+    	    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    	    return o;
+	};
+
+	var PlayerViewModel = function(name, paid) {
+    	    var self = this;
+    	    self.player_name = ko.observable(name);
+    	    self.paid = ko.observable(paid);
+    	    self.had_bye = ko.observable(false);
+    	    self.results = ko.observableArray([{result: ko.observable('')}, {result: ko.observable('')}, {result: ko.observable('')}, {result: ko.observable('')}, {result: ko.observable('')}]);
+    	    self.player_total = ko.computed(function() {
+        	var total = 0;
+        	_.each(self.results(), function(r) {
+            	    if (typeof(r.result()) != "string") {
+                	total += r.result();
+            	    };
+        	});
+        	return total;
+    	    });
+	    self.place = ko.observable(99);
+    	    return self;
+    	};
+
+	var DetermineNumByes = function(players) {
+    	    return players.length % 4;
+	};
+
+	var DetermineNumTeams = function(players, byes) {
+    	    return (players.length - byes)/2;
+	};
+
+	var TournamentViewModel = function() {
+    	    var self = this;
+    	    self.begin = ko.observable(true);
+    	    self.signups = ko.observable(false);
+	    self.unpaid_players = ko.observable(false);
+	    self.player_table = ko.observable(false);
+	    self.summary_well = ko.observable(false);
+    	    self.all_paid = ko.observable(false);
+    	    self.matchups_set = ko.observable(false);
+	    self.byes = ko.observable(false);
+	    self.next_round_button = ko.observable(false);
+
+	    self.availableBars = ko.observableArray(['Rags', 'TBags']);
+	    self.venue = ko.observable();
+	    self.entry_fee = ko.observable(10);
+
+	    self.r_player = ko.observable();
+	    self.r_paid = ko.observable(false);
+    
+    	    self.players = ko.observableArray();
+	    self.players_this_round = ko.observableArray();
+    	    self.num_teams = ko.observable();
+    	    self.num_byes = ko.observable();
+	    self.num_advancing = ko.observable();
+	    self.bye_counter = ko.observable(0);
+    	    self.available_numbers = ko.observableArray();
+    	    self.boards_needed = ko.observableArray();
+    	    self.assignments = ko.observableArray();
+    	    self.matchups = ko.observableArray();
+    	    self.round_byes = ko.observableArray();
+	    self.game_list = ko.observableArray(['501', 'Cricket', '501', 'Cricket', 'Choice']);
+	    self.next_game = ko.observable();
+	    self.round_counter = ko.observable(0);
+	    self.cutoff_place = ko.observable();
+	    self.num_advancing = ko.computed(function() {
+                if (self.players().length < 10) {
+                    return 4;
+                };
+                if (self.players().length >= 10 && self.players().length <= 12) {
+                    return 6;
+                };
+                if (self.players().length > 12 && self.players().length <= 16) {
+                    return 8;
+                };
+                if (self.players().length > 16 && self.players().length <= 24) {
+                    return 12;
+                };
+                if (self.players().length > 24) {
+                    return 16;
+                };
+	    });
+   
+	    self.registered_players = ko.computed(function() {
+		return self.players().length;
+	    });
+	    self.entry_fees = ko.computed(function() {
+		return self.registered_players() * self.entry_fee();
+	    });
+	    self.bar_contribution = ko.computed(function() {
+		return self.registered_players() * 5;
+	    });
+	    self.tournament_pot = ko.computed(function() {
+		if (self.venue() === 'TBags') {
+		    return self.registered_players() * (self.entry_fee() - 2) + self.bar_contribution();
+		};
+		if (self.venue() === 'Rags') {
+		    return self.entry_fees() + self.bar_contribution();	
+		};
+	    });
+	    self.double_shot = ko.computed(function() {
+		return self.registered_players() * 2;
+	    });
+
+    	    self.start_signups = function() {
+        	self.begin(false);
+        	self.signups(true);
+		self.player_table(true);
+		self.summary_well(true);
+		console.log("venue", self.venue());
+    	    };
+
+    	    self.add_players = function() {
+        	self.players.push(new PlayerViewModel(self.r_player(), self.r_paid()));
+		self.r_player('');
+		self.r_paid(false);
+
+		var all_paid = _.every(self.players(), function(player) {
+		    return player.paid() == true;
+		});
+		if (!all_paid) {
+		    self.unpaid_players(true);
+		};
+		console.log("players", self.players());
+    	    };
+    
+    	    self.get_player_number = function() {
+        	ShuffleModel(self.available_numbers());
+        	return self.available_numbers.pop();
+    	    };
+    
+    	    self.generate_matchups = function() {
+        	self.assignments.sort(function(a, b) {
+            	    return a.number == b.number ? 0 : (a.number < b.number ? -1 : 1);
+        	});
+                // figure out who has byes
+            	_.each(self.assignments(), function(a) {
+            	    if (a.number === 0) {
+                    	self.round_byes.push(a);
+            	    };
+            	});
+		_.each(self.round_byes(), function(bye) {
+		    bye.player.had_bye(true);
+		});
+
+            	// get rid of the byes
+            	for (var i=1; i<=self.num_byes(); i++) {
+            	    self.assignments.shift();
+            	};
+
+            	var counter = 1;
+            	var board_number = 1;
+            	_.each(self.assignments(), function(a) {
+            	    a['board'] = board_number;
+            	    if (counter % 4 === 0) {
+                    	board_number += 1;
+            	    };
+             	    counter += 1;
+            	});
+        
+	    	for(var i=1; i<=self.boards_needed(); i++) {
+            	    b = {};
+            	    b['board'] = i
+            	    var odd_team = 2 * i - 1;
+            	    var teamA = _.where(self.assignments(), {board: i, number: odd_team});
+            	    var even_team = 2 * i;                                                     
+            	    var teamB = _.where(self.assignments(), {board: i, number: even_team});
+            	    b['teamA'] = teamA;
+            	    b['teamB'] = teamB;
+		    b['teamA_winner'] = ko.observable();
+		    b['teamB_winner'] = ko.observable();
+            	    self.matchups.push(b);
+             	};
+		self.next_round_button(true);
+		self.matchups_set(true);
+    	    };
+
+	    self.assign_player = function(player) {
+		var p_number = self.get_player_number();
+		var p_info = {};
+		p_info['player'] = player;
+		p_info['number'] = p_number;
+
+		return p_info;
+	    };
+
+	    self.generate_assignments = function() {
+		self.available_numbers.removeAll();
+		self.assignments.removeAll();
+		self.matchups.removeAll();
+		self.players_this_round.removeAll();	
+		_.each(self.players(), function(player) {
+		    self.players_this_round.push(player);
+		});
+		if (self.bye_counter() > 0) {
+		    for (var i=1; i<=self.num_teams(); i++) {
+			self.available_numbers.push(i);
+			self.available_numbers.push(i);
+		    };
+		    _.each(self.players_this_round(), function(player) {
+			if (player.had_bye()) {
+			    self.assignments.push(self.assign_player(player));
+			    self.players_this_round.remove(player);
+			};
+		    });
+		    for (var i=1; i<=self.num_byes(); i++) {
+			self.available_numbers.push(0);
+		    };
+		    _.each(self.players_this_round(), function(player) {
+			self.assignments.push(self.assign_player(player));
+		    });
+		} else {
+		    for (var i=1; i<=self.num_byes(); i++) {
+		    	self.available_numbers.push(0);
+		    };
+		    for (var i=1; i<=self.num_teams(); i++) {
+			self.available_numbers.push(i);
+			self.available_numbers.push(i);
+		    };
+		    _.each(self.players_this_round(), function(player) {
+			self.assignments.push(self.assign_player(player));
+		    });
+		};
+		var b_counter = self.bye_counter() + self.num_byes();
+		self.bye_counter(b_counter);
+		self.generate_matchups();
+	    };
+
+	    self.determine_advancing_players = function() {
+		if (self.players().length < 10) {
+		    return 4;
+		};
+		if (self.players().length >= 10 && self.players().length <= 12) {
+		    return 6;
+		};
+		if (self.players().length > 12 && self.players().length <= 16) {
+		    return 8;
+		};
+		if (self.players().length > 16 && self.players().length <= 24) {
+		    return 12;
+		};
+		if (self.players().length > 24) {
+		    return 16;
+		};
+	    };
+    
+    	    self.start_tournament = function() {
+            	_.each(self.players(), function(player) {
+            	    if (!player.paid()) {
+                    	alert(player.player_name() + " has not paid!");
+            	    };
+            	    if (player.player_name() == "") {
+                    	self.players.remove(player);
+            	    };
+             	    return;
+            	});
+            	var paid = _.every(self.players(), function(player) {
+            	    return player.paid();
+                });
+            	self.all_paid(paid);  
+            	self.num_byes(DetermineNumByes(self.players()));
+		if (self.num_byes().length > 0) {
+		    self.byes(true);
+	  	};
+            	self.num_teams(DetermineNumTeams(self.players(), self.num_byes()));
+		self.boards_needed.push((self.num_teams()/2));
+
+		if (self.all_paid()) {
+		    self.signups(false);
+		    self.unpaid_players(false);
+		    self.generate_assignments();
+		    self.next_game(self.game_list.shift());
+		};
+    	    };
+
+	    self.next_round = function() {
+		self.matchups_set(false);
+		self.next_round_button(false);
+		_.each(self.matchups(), function(match) {
+		    if (match.teamA_winner()) {
+			_.each(match.teamA, function(a) {
+			    a.player.results()[self.round_counter()].result(1);
+			});
+			_.each(match.teamB, function(b) {
+			    b.player.results()[self.round_counter()].result(0);
+			});	
+		    };
+		    if (match.teamB_winner()) {
+			_.each(match.teamB, function(b) {
+			    b.player.results()[self.round_counter()].result(1);
+			});
+			_.each(match.teamA, function(a) {
+			    a.player.results()[self.round_counter()].result(0);
+			});
+		    };
+		});
+		if (self.game_list().length > 0) {
+		    self.next_game(self.game_list.shift());
+		    self.generate_assignments();
+		    self.round_counter(self.round_counter() + 1);
+		};
+		self.players.sort(function(a, b) {
+		    return b.player_total() - a.player_total();
+		});
+		var place_counter = 0;
+		var player_counter = 0;
+		var total_ties = 1;
+		var previous_total = 10;
+		_.each(self.players(), function(player) {
+		    if (player.player_total() < previous_total) {
+			if (total_ties > 1) {
+			    place_counter += total_ties;
+			} else {
+			    place_counter += 1;
+			};
+			total_ties = 1;
+		    };
+		    if (player.player_total() == previous_total) {
+			total_ties += 1;
+		    };
+		    player.place(place_counter);
+		    previous_total = player.player_total();
+		    player_counter += 1;
+		    if (player_counter == self.num_advancing()) {
+			self.cutoff_place(place_counter);
+		    };
+		});
+		console.log("cutoff", self.cutoff_place());
+	    };
+    	};
+	      	    
+	var tournament = new TournamentViewModel();
+        ko.applyBindings(tournament);
+    
+    });
+    </script>
+</body>

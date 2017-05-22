@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Garage Members{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .player-link {
+	color: #837E7C;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+{% for p in player_list %}
+    {% if forloop.counter0|divisibleby:"3" %}
+	</div><div class="row">
+    {% endif %}
+    <div class="span4">
+    	<h3><center><a href="{% url 'player_profile' player_id=p.id %}" class="player-link">{{p.first_name}} {{p.last_name}}</a></center></h3>
+    </div>
+{% endfor %}
+</div>
+{% endblock %}
+

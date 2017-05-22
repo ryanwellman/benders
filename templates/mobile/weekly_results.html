@@ -1,0 +1,30 @@
+{% extends "mobile_base.html" %}
+
+{% block content %}
+<h2><center>Weekly Results</center></h2>
+<div data-role="collapsibleset">
+    {% for c in completed_games %}
+	<div data-role="collapsible">
+	    <h3>Game {{ c.game_number }}</h3>
+	    <table class="table table-striped table-bordered">
+		<thead>
+		    <th>Place</th>
+		    <th>Player</th>
+		    <th>Points</th>
+		</thead>
+		{% for r in results %}
+		    {% if r.game_id == c.game_id %}
+		    <tbody>
+			<tr>
+			    <td>{{ r.place }}</td>
+			    <td>{{ r.player.first_name }} {{ r.player.last_name }}</td>
+			    <td>{{ r.total_points }}</td>
+			</tr>
+		    </tbody>
+		    {% endif %}
+		{% endfor %}
+	    </table>
+	</div>
+    {% endfor %}
+</div>
+{% endblock %}

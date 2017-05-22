@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Awards{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .award-man {
+	max-width: 200%; 
+    }
+    .award-title {
+	background-color: #848482;
+	color: white;
+	font-size: 18px;
+	font-weight: bold;
+    }
+    .description {
+	background-color: #E5E4E2;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <center><p><strong>We hand out several awards at the end of each season - most of which are completely meaningless, but fun nonetheless.  Here's a look at which awards are given out.</strong></p> 
+    <p><strong> Take a look at the <a href="{% url 'hall_of_fame' %}">HALL OF FAME</a> to see all of the past winners.</strong></p></center>
+</div>
+<div>&nbsp;</div>
+<div class="row">
+    <div class="span4">
+	</br></br></br>
+	<img src="/static/images/trophyman.jpg" class="award-man" />  
+    </div>
+    {% for a in awards %}
+	{% if a.id <= 5 %}
+	    <div class="span8 pull-right">
+		<table class="table table-bordered">
+		    <tr class="award-title">
+			<td><center>{{ a.award }}</center></td>
+		    </tr>
+		    <tr class="description">
+			<td>{{ a.description }}</td>
+		    </tr>
+		</table>
+	    </div>
+	{% endif %}
+    {% endfor %}
+</div>
+<div class="row">
+    <div class="span4 pull-right">
+	</br></br></br></br>
+	<img src="/static/images/awardman.jpg" class="award-man" />
+    </div>
+    {% for a in awards %}
+	{% if a.id > 5 %}
+	    <div class="span8">
+		<table class="table table-bordered">
+		    <tr class="award-title">
+			<td><center>{{ a.award }}</center></td>
+		    </tr>
+		    <tr class="description">
+			<td>{{ a.description }}</td>
+		    </tr>
+	 	</table>
+	    </div>
+	{% endif %}
+    {% endfor %}
+</div>
+{% endblock %}
+

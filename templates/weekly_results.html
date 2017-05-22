@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Weekly Results{% endblock %}
+
+{% block stylesheets %}
+<style type="text/css">
+    .results-table th {
+        text-align: center;
+    }
+    .results-table td {
+        text-align: center;
+    }
+    .in-progress {
+	background-color: #8BB381;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="container">
+</div>
+<div>&nbsp;</div>
+<div class="tabbable tabs-left">
+    <ul class="nav nav-tabs">
+        {% for s in schedule %}
+	    {% if s.in_progress %}
+		<li class="active"><a class="result_link" href="#game{{s.game_id}}" data-toggle="tab">Game {{ s.game_number }}</a></li>
+	    {% elif s.game_id == last_game.game_id  and not game_in_progress %}
+	        <li class="active"><a class="result_link" href="#game{{s.game_id}}" data-toggle="tab">Game {{ s.game_number }}</a></li>
+	    {% else %}
+		<li><a class="result_link" href="#game{{s.game_id}}" data-toggle="tab">Game {{ s.game_number }}</a></li>
+	    {% endif %}
+	{% endfor %}
+    </ul>
+    <div class="tab-content">
+	{% for s in schedule %}
+	    {% if s.in_progress %}
+		<div class="tab-pane active" id="game{{s.game_id}}">
+		    <div class="well in-progress">
+                        <h3>Game Number {{ s.game_number }}</h3>
+		        <h4>Game is in Progress!</h4>
+                    </div>
+		    <h4>Remaining Players</h4>
+		    <div class="row">
+			{% for si in still_in %}
+			    {% if forloop.counter0|divisibleby:"3" %}
+				</div><div class="row">
+			    {% endif %}
+			    <div class="span3">
+				<h5><center>{{ si.player.first_name }} {{ si.player.last_name }}<center></h5>
+			    </div>
+			{% endfor %}
+		    </div>
+		    <h4>Busted Players</h4>
+		    <table class="table results-table table-striped table-bordered table-condensed">
+			<thead>
+                            <th>Place</th>
+                            <th>Player</th>
+                            <th>Personal Rebuys</th>
+                            <th>Tournament Points</th>
+                            <th>Bounty Points</th>
+                            <th>Total Points</th>
+                        </thead>
+                        <tbody>
+                        {% for r in results %}
+                            {% if r.game_id == s.game_id %}
+                            <tr>
+                                <td>{{ r.place }}</td>
+                                <td>{{ r.player.first_name }} {{ r.player.last_name }}</td>
+                                <td>{{ r.rebuys }}</td>
+                                <td>{{ r.tournament_points }}</td>
+                                <td>{{ r.bounty_points }}</td>
+                                <td>{{ r.total_points }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+		    </table>
+		</div> 
+	    {% elif s.game_id == last_game.game_id and not game_in_progress %}
+	        <div class="tab-pane active" id="game{{s.game_id}}">
+		    <div class="well">
+			<h3>Game Number {{ s.game_number }}</h3>
+		    </div>
+		    <table class="table results-table table-striped table-bordered table-condensed">
+			<thead>
+			    <th>Place</th>
+			    <th>Player</th>
+				<th>Personal Rebuys</th>
+			    <th>Tournament Points</th>
+			    <th>Bounty Points</th>
+			    <th>Total Points</th>
+			</thead>
+			<tbody>
+			{% for r in results %}
+			    {% if r.game_id == s.game_id %}
+			    <tr>
+				<td>{{ r.place }}</td>
+				<td>{{ r.player.first_name }} {{ r.player.last_name }}</td>
+				<td>{{ r.rebuys }}</td>
+				<td>{{ r.tournament_points }}</td>
+				<td>{{ r.bounty_points }}</td>
+				<td>{{ r.total_points }}</td>
+			    </tr>
+			    {% endif %}
+			{% endfor %}
+			</tbody>
+		    </table>
+		</div>
+	    {% elif s.game_id in games_with_results %}
+		<div class="tab-pane" id="game{{s.game_id}}">
+		    <div class="well">
+			<h3>Game Number {{ s.game_number }}</h3>
+		    </div>
+		    <table class="table results-table table-striped table-bordered table-condensed">
+                        <thead>
+                            <th>Place</th>
+                            <th>Player</th>
+                            <th>Personal Rebuys</th>
+                            <th>Tournament Points</th>
+                            <th>Bounty Points</th>
+                            <th>Total Points</th>
+                        </thead>
+                        <tbody>
+                        {% for r in results %}
+                            {% if r.game_id == s.game_id %}
+                            <tr>
+                                <td>{{ r.place }}</td>
+                                <td>{{ r.player.first_name }} {{ r.player.last_name }}</td>
+                                <td>{{ r.rebuys }}</td>
+                                <td>{{ r.tournament_points }}</td>
+                                <td>{{ r.bounty_points }}</td>
+                                <td>{{ r.total_points }}</td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+		</div>
+	    {% else %}
+		<div class="tab-pane" id="game{{s.game_id}}">
+		    <div class="well">
+			<h3>Game Number {{ s.game_number }}</h3>
+		    </div>
+		    <p>Game {{ s.game_number }} has not been played yet.  Please check back after {{s.when|date }}</p>
+		</div>
+	    {% endif %}
+	{% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript_variables_nocompress %}
+<script type="text/javascript">
+    window.RESULT_SET = {{ weekly_info|safe }};
+</script>
+{% endblock %}
+
+{% block javascript_compress %}
+<script type="text/javascript">
+    $(function () {
+	var games = [];
+	var rebuys = [];
+	var entries = [];
+	_.each(window.RESULT_SET, function(week) {
+	    games.push(week.game);
+	    rebuys.push(week.rebuys);
+	    entries.push(week.players);
+	});
+        $('#container').highcharts({
+            chart: {
+                type: 'column'
+            },
+            title: {
+                text: 'Weekly Entries'
+            },
+            xAxis: {
+                categories: games,
+		title: {
+		    text: 'Week'
+		}
+            },
+            yAxis: {
+                min: 0,
+                title: {
+                    text: 'Number',
+		    color: '#FFFF00'
+                }
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                    '<td style="padding:0"><b>{point.y:f} </b></td></tr>',
+                footerFormat: '</table>',
+                shared: true,
+                useHTML: true
+            },
+            plotOptions: {
+                column: {
+                    pointPadding: 0.2,
+                    borderWidth: 0
+                }
+            },
+            series: [{
+                name: 'Entries',
+                data: entries,
+		color: '#000000'
+            }, {
+                name: 'Rebuys',
+   		data: rebuys,
+		color: '#FFFF00' 
+            }]
+        });
+    });    
+</script>
+{% endblock %}

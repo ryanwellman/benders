@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Register Player{% endblock %}
+
+{% block content %}
+<p>Pick a player to register: <select data-bind='options: players, optionsText: "player_name", optionsCaption: "Select Player...", value: selected_player'> </select></p>  
+<p>Pick a game to register for: <select data-bind='options: games, optionsText: "game_display", optionsCaption: "Select Game...", value: selected_game'></select></p>
+<p><button class="btn btn-success" data-bind="click: register">Register Player</button>
+<script type="text/javascript">
+window.SCHEDULE = {{ schedule|safe }};
+window.PLAYERS = {{ players|safe }};
+
+$(function(){
+    var PlayerViewModel = function(player) {
+	var self = this;
+	self.id = player.id;
+	self.player_name = player.first_name + " " + player.last_name;
+    };
+    var ScheduleViewModel = function(schedule) {
+	var self = this;
+	self.id = schedule.game_id;
+	self.game = schedule.game_number;
+	self.day = schedule.when;
+	self.game_display = self.game + " - " + self.day;
+    };
+    var RegisterViewModel = function() {
+	var self = this;
+	self.players = ko.observableArray();
+	self.games = ko.observableArray();
+
+	_.each(window.PLAYERS, function(p) {
+	    self.players.push(new PlayerViewModel(p));
+	});
+	_.each(window.SCHEDULE, function(s) {
+	    self.games.push(new ScheduleViewModel(s));
+	});
+
+	self.selected_player = ko.observable();
+	self.selected_game = ko.observable();
+
+	self.register = function() {
+	    console.log(self.selected_player());
+	    console.log(self.selected_game());
+	    if (!(self.selected_player())){alert("You need to select a player to register");}
+	    if (!(self.selected_game())){alert("You need to select a game to register");}
+	    if (confirm("RSVP " + self.selected_player().player_name + " for game " + self.selected_game().game +  "?")) {
+            	$.ajax({
+                    type: "GET",
+                    url: "/ajax_admin_rsvp",
+                    dataType: "json",
+                    data: {
+		    	"player_id": self.selected_player().id,
+		    	"game_id": self.selected_game().id
+                    },
+                    success: function(data) {
+                    	console.log("data", data);
+                    }
+            	});
+	    }
+	};
+    };
+    
+    var rvm = new RegisterViewModel();
+    ko.applyBindings(rvm);
+});
+</script>
+{% endblock %}
+
+

@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Assign Awards{% endblock %}
+
+{% block content %}
+{% include 'form_errors.html' %}
+<form class="form-horizontal" method="POST">
+    {% csrf_token %}
+    <div class="control-group">
+	<label class="control-label" for="selected_season">Season: </label>
+	<div class="controls">
+	    <select class="input-medium" name="selected_season">
+		<option></option>
+		{% for s in season_list %}
+		    <option value="{{s.season}}">{{s.season}}</option>
+		{% endfor %}
+	    </select>
+	</div>
+    </div>
+    <div class="control-group">
+	<label class="control-label" for="selected_award">Award: </label>
+	<div class="controls">
+	    <select class="input-medium" name="selected_award">
+		<option></option>
+		{% for a in award_list %}
+		    <option value="{{a.id}}">{{a.award}}</option>
+		{% endfor %}
+	    </select>
+	</div>
+    </div>
+    <div class="control-group">
+	<label class="control-label" for="selected_player">Player: </label>
+	<div class="controls">
+	    <select class="input-medium" name="selected_player">
+		<option></option>
+		{% for p in player_list %}
+		    <option value="{{p.id}}">{{p.first_name}} {{p.last_name}}</option>
+		{% endfor %}
+	    </select>
+	</div>
+    </div>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Assign Award</button>
+        <a href="{% url 'benders_admin' %}" class="btn">Cancel</button></a>
+    </div>
+
+</form>
+{% endblock %}
+
+

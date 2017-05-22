@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'less/benders.css' %}" />
+    <link rel="stylesheet" href="{% static 'less/jquery.mobile.icons.min.css' %}" />
+    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.2/jquery.mobile.structure-1.4.2.min.css" /> 
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://code.jquery.com/mobile/1.4.2/jquery.mobile-1.4.2.min.js"></script>
+    <script type="text/javascript" src="{% static js/jquery.easydropdown.min.js"></script>
+</head>
+<body>
+
+<div data-role="page">
+    <div data-role="header" style="min-height: 45px;, padding-top: 20px;">
+	<a href="{% url 'home' %}" data-icon="home" data-iconpos="notext" data-ajax="false" style="vertical-align: middle"></a>
+	<center><img src="{% static 'images/bgbanner.png' %}" class="banner-pic" /></center>
+	<center>Mobile</center>
+	<!--<a href="#" data-icon="grid" data-iconpos="notext"></a>-->
+	<select class="dropdown">
+	    <option>Menu</option>
+	    <option><a href="{% url 'schedule' %}">Schedule</a></option>
+	</select>
+    </div><!-- /header -->
+    <div data-role="content">
+	{% block content %}{% endblock %}
+    </div><!-- /content -->
+</div><!-- /page -->
+
+</body>
+</html>

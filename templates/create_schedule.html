@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block pagetitle %}Create Schedule{% endblock %}
+
+{% block content %}
+{% include 'form_errors.html' %}
+<form class="form-horizontal" method="POST">
+    {% csrf_token %}
+    {% include 'bootstrap-field.html' with field=form.season %}
+    {% include 'bootstrap-field.html' with field=form.when %}
+    {% include 'bootstrap-field.html' with field=form.game_number %}
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Create Game</button>
+	<a href="{% url 'benders_admin' %}" class="btn">Cancel</button></a>
+    </div>
+
+</form>
+{% endblock %}
+
+{% block javascript_compress %}
+<script type="text/javascript">
+    $(function() {
+	$('.bootstrap-datepicker').datepicker({
+	    autoclose: true,
+	    format: "yyyy-mm-dd"
+	});
+    });
+</script>
+{% endblock %}
